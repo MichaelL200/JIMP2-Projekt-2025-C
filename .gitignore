@@ -1,0 +1,6 @@
+# Katalog z plikami wynikowymi kompilacji
+/obj/
+
+# Plik wykonywalny + linker
+graphdivider
+gd
