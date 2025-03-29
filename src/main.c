@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
+
 void printv(int *v, int n, int n_row)
 {
     printf("\t[ ");
@@ -32,72 +34,15 @@ int getv(int *v, int a, int b, int n)
 
 int main(int argc, char *argv[])
 {
-    int opt;
-    int parts = 2;
-    int margin = 10;
-    char *input_file = NULL;
-    char *output_file = "output.txt";
-    char *format = "txt";
-
     // Parsowanie argumentów
-    while ((opt = getopt(argc, argv, "p:m:o:f:")) != -1)
-    {
-        switch (opt)
-        {
-            // Parts
-            case 'p':
-                parts = atoi(optarg);
-                break;
-            // Margin
-            case 'm':
-                margin = atoi(optarg);
-                break;
-            // Output
-            case 'o':
-                output_file = optarg;
-                break;
-            // Format
-            case 'f':
-                format = optarg;
-                break;
-            // Nieznana flaga
-            case '?':
-                fprintf(stderr, "\tNieznana flaga: -%c\n", optopt);
-                exit(EXIT_FAILURE);
-        }
-    }
+    Config config = parse_args(argc, argv);
 
-    // Sprawdzenie, czy plik wejściowy został podany
-    if (optind < argc)
-    {
-        input_file = argv[optind];
+    validate_input_file(&config, argc, argv);
 
-        // Sprawdzenie rozszerzenia pliku wejściowego
-        const char* ext = ".csrrg";
-        size_t len_f = strlen(input_file);
-        size_t len_e = strlen(ext);
-        if(len_f < len_e ||
-         strcmp(input_file + len_f - len_e, ext) != 0)
-        {
-            fprintf(stderr, "\tZłe rozszerzenie pliku wejściowego. Popawne rozszerzenie to .csrrg\n");
-            exit(EXIT_FAILURE);
-        }
-        
-    } else
-    {
-        fprintf(stderr, "\tBrak pliku wejściowego\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Wyświetlenie wczytanych argumentów
-    printf("\tPlik wejściowy: %s\n", input_file);
-    printf("\tLiczba części: %d\n", parts);
-    printf("\tMargines: %d%%\n", margin);
-    printf("\tPlik wyjściowy: %s\n", output_file);
-    printf("\tFormat: %s\n", format);
+    print_config(&config);
 
     // Otwarcie pliku wejściowego
-    FILE *in = fopen(input_file, "r");
+    FILE *in = fopen(config.input_file, "r");
     if(in == NULL)
     {
         fprintf(stderr, "\tBłąd otwarcia pliku\n");

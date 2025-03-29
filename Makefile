@@ -1,6 +1,6 @@
 # Kompilator i jego flagi
 CC = cc
-CFLAGS = -Wall -Wextra -Wuninitialized -g
+CFLAGS = -Wall -Wextra -Wuninitialized -g -Iinclude
 
 # Katalogi
 SRC_DIR = src
