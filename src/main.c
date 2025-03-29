@@ -3,18 +3,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-void printv(int *v, int n)
+void printv(int *v, int n, int n_row)
 {
-    printf("\n\t[ ");
+    printf("\t[ ");
     for(int i = 0; i < n; i++)
     {
-        if( !( (i + 1) % 10) )
+        if( !( i % n_row) )
         {
             printf("\n\t");
         }
         printf("%d ", v[i]);
     }
     printf("]\n");
+}
+
+void add_edge(int *v, int a, int b, int n)
+{
+    // [a, b] = [a * n + b]
+    v[a * n + b] = 1;
+    v[b * n + a] = 1;
+    //symetria względem diagonali
+}
+
+int getv(int *v, int a, int b, int n)
+{
+    return v[a * n + b];
 }
 
 int main(int argc, char *argv[])
@@ -100,6 +113,7 @@ int main(int argc, char *argv[])
     size_t g_count = 0;
     int *vertices_ptrs = NULL;
     size_t p_count = 0;
+    int v_count = 0;
 
     // Otrzytywanie pliku linia po linii
     while((read = getline(&line, &len, in)) != -1)
@@ -147,6 +161,12 @@ int main(int argc, char *argv[])
                     vertices_groups = tmp;
                     vertices_groups[g_count++] = val;
                     token = strtok(NULL, ";");
+
+                    // Przypisz znaleziony większy numer indeksu wierzchołka
+                    if(val > v_count)
+                    {
+                        v_count = val;
+                    }
                 }
                 // Odczytanie wskaźników
                 else if(line_number == 5)
@@ -169,13 +189,52 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Zwolnienie pamięci
+    free(line);
+
     // Zamknięcie pliku wejściowego
     fclose(in);
 
     // Wyświetlenie wczytanych danych
-    printf("\tLimit wierzchołków w wierszu: %d\n", max_vertices);
-    printv(vertices_groups, g_count);
-    printv(vertices_ptrs, p_count);
+    printf("\n\tLimit wierzchołków w wierszu: %d\n", max_vertices);
+    printf("\n\tGrupy połączeń:\n");
+    printv(vertices_groups, g_count, 10);
+    printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");
+    printv(vertices_ptrs, p_count, 10);
+    printf("\n\tLiczba wierzchołków: %d\n", ++v_count);
+
+    // Wczytanie grafu do macierzy sąsiedztwa A
+    printf("\n\tPołączenia dodane do macierzy sąsiedztwa:");
+    int *A = calloc(v_count * v_count, sizeof(int));
+    int p = 0;
+    int v = 0;
+    for(int i = 0; i < (int)g_count; i++)
+    {
+        // Zaktualizuj wierzchołek
+        if(p < (int)p_count && i == vertices_ptrs[p])
+        {
+            v = vertices_groups[i];
+            printf("\n\t%d - %d: ", i, v);
+            p++;
+        }
+        else
+        {
+            printf("\t%d", vertices_groups[i]);
+            add_edge(A, v, vertices_groups[i], v_count);
+        }
+    }
+    printf("\n");
+
+    // Test
+    //printf("\]n\t%d\n", getv(A, 93, 90, v_count));
+
+    // Wyświetlenie macierzy sąsiedztwa
+    printv(A, v_count * v_count, v_count);
+
+    // Zwolnienie pamięci
+    free(A);
+    free(vertices_ptrs);
+    free(vertices_groups);
 
     return EXIT_SUCCESS;
 }
