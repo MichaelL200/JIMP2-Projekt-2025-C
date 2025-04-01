@@ -4,3 +4,6 @@
 # Plik wykonywalny + linker
 graphdivider
 gd
+
+# Pliki edytora
+./vscode/

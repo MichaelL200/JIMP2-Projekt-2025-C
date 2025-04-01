@@ -15,9 +15,9 @@ typedef struct
 Config parse_args(int argc, char **argv);
 
 // Weryfikacja pliku wejściowego – sprawdza czy został podany i czy ma rozszerzenie .csrrg
-void validate_input_file(Config *config, int argc, char **argv);
+void validate_input_file(Config *c, int argc, char **argv);
 
 // Wyświetlanie konfiguracji
-void print_config(const Config *config);
+void print_config(const Config *c);
 
 #endif // CONFIG_H

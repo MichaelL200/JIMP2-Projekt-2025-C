@@ -7,14 +7,14 @@
 
 // Parsowanie argumentów, zwrócenie skonfigurowanej struktury
 Config parse_args(int argc, char **argv) {
-    Config config;
+    Config c;
 
     // Ustawienia domyślne
-    config.parts = 2;
-    config.margin = 10;
-    config.input_file = NULL;
-    config.output_file = "output.txt";
-    config.format = "txt";
+    c.parts = 2;
+    c.margin = 10;
+    c.input_file = NULL;
+    c.output_file = "output.txt";
+    c.format = "txt";
 
     // Parsowanie argumentów
     int opt;
@@ -22,19 +22,19 @@ Config parse_args(int argc, char **argv) {
         switch (opt) {
             // Parts
             case 'p':
-                config.parts = atoi(optarg);
+                c.parts = atoi(optarg);
                 break;
             // Margin
             case 'm':
-                config.margin = atoi(optarg);
+                c.margin = atoi(optarg);
                 break;
             // Output
             case 'o':
-                config.output_file = optarg;
+                c.output_file = optarg;
                 break;
             // Format
             case 'f':
-                config.format = optarg;
+                c.format = optarg;
                 break;
             // Nieznana flaga
             case '?':
@@ -42,23 +42,23 @@ Config parse_args(int argc, char **argv) {
                 exit(EXIT_FAILURE);
         }
     }
-    return config;
+    return c;
 }
 
 // Weryfikacja pliku wejściowego – sprawdza czy został podany i czy ma rozszerzenie .csrrg
-void validate_input_file(Config *config, int argc, char **argv)
+void validate_input_file(Config *c, int argc, char **argv)
 {
     // Sprawdzenie, czy plik wejściowy został podany
     if (optind < argc)
     {
-        config->input_file = argv[optind];
+        c->input_file = argv[optind];
 
         // Sprawdzenie rozszerzenia pliku wejściowego
         const char* ext = ".csrrg";
-        size_t len_f = strlen(config->input_file);
+        size_t len_f = strlen(c->input_file);
         size_t len_e = strlen(ext);
         if(len_f < len_e ||
-         strcmp(config->input_file + len_f - len_e, ext) != 0)
+         strcmp(c->input_file + len_f - len_e, ext) != 0)
         {
             fprintf(stderr, "\tZłe rozszerzenie pliku wejściowego. Popawne rozszerzenie to .csrrg\n");
             exit(EXIT_FAILURE);
@@ -73,12 +73,12 @@ void validate_input_file(Config *config, int argc, char **argv)
 }
 
 // Wyświetlanie konfiguracji
-void print_config(const Config *config)
+void print_config(const Config *c)
 {
     // Wyświetlenie wczytanych argumentów
-    printf("\tPlik wejściowy: %s\n", config->input_file);
-    printf("\tLiczba części: %d\n", config->parts);
-    printf("\tMargines: %d%%\n", config->margin);
-    printf("\tPlik wyjściowy: %s\n", config->output_file);
-    printf("\tFormat: %s\n", config->format);
+    printf("\tPlik wejściowy: %s\n", c->input_file);
+    printf("\tLiczba części: %d\n", c->parts);
+    printf("\tMargines: %d%%\n", c->margin);
+    printf("\tPlik wyjściowy: %s\n", c->output_file);
+    printf("\tFormat: %s\n", c->format);
 }
