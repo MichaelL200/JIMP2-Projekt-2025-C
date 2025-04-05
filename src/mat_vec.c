@@ -74,6 +74,11 @@ int* get_adjacency_matrix(Input *i)
 int* calc_degree_mat(int *A, int n)
 {
     int *D = calloc(n, sizeof(int));
+    if(D == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci!\n");
+        free(A);
+    }
 
     // dla każdego wierzchołka
     for(int i = 0; i < n; i++)
@@ -106,5 +111,36 @@ int* calc_degree_mat(int *A, int n)
 // Obliczenie macierzy Laplace'a grafu L
 int* calc_laplacian(int* A, int* D, int n)
 {
-    return NULL;
+    // = 0
+    int* L = calloc(n * n, sizeof(int));
+    if(L == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci!\n");
+        free(A);
+        free(D);
+    }
+
+    // + D
+    for(int i = 0; i < n; i++)
+    {
+        L[i * n + i] = D[i];
+    }
+
+    // - A
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < n; j++)
+        {
+            L[i * n + j] -= A[i * n + j];
+        }
+    }
+
+    // Wyświetlenie macierzy Laplace'a
+    if(n < 30)
+    {
+        printf("\n");
+        printv(L, n * n, n);
+    }
+
+    return L;
 }
