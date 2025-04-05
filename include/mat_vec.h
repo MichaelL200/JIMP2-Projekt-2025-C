@@ -15,4 +15,10 @@ int getv(int *v, int a, int b, int n);
 // Wczytanie grafu do macierzy sąsiedztwa A
 int* get_adjacency_matrix(Input *i);
 
+// Obliczenie macierzy stopni grafu D
+int* calc_degree_mat(int *A, int n);
+
+// Obliczenie macierzy Laplace'a grafu L
+int* calc_laplacian(int* A, int* D, int n);
+
 #endif // MAT_VEC_H

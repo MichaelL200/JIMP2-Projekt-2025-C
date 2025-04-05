@@ -61,10 +61,50 @@ int* get_adjacency_matrix(Input *i)
     //printf("\]n\t%d\n", getv(A, 93, 90, v_count));
 
     // Wyświetlenie macierzy sąsiedztwa
-    if(i->v_count < 200)
+    if(i->v_count < 30)
     {
+        printf("\n");
         printv(A, i->v_count * i->v_count, i->v_count);
     }
 
     return A;
+}
+
+// Obliczenie macierzy stopni grafu D
+int* calc_degree_mat(int *A, int n)
+{
+    int *D = calloc(n, sizeof(int));
+
+    // dla każdego wierzchołka
+    for(int i = 0; i < n; i++)
+    {
+        // sprawdź liczbę krawędzi w macierzy sąsiedztwa
+        for(int j = 0; j < n; j++)
+        {
+            if(A[i * n + j] != 0)
+            {
+                // zwiększanie stopnia wierzchołka
+                D[i]++;
+                
+                // zwiększanie stopnia dodatkowo dla pętli
+                if(i == j)
+                {
+                    D[i]++;
+                }
+            }
+        }
+    }
+
+    // Wypisanie macierzy (wektora) stopni grafu D (tylko diagonale)
+    printf("\n");
+    printv(D, n, 30);
+    printf("\n");
+
+    return D;
+}
+
+// Obliczenie macierzy Laplace'a grafu L
+int* calc_laplacian(int* A, int* D, int n)
+{
+    return NULL;
 }

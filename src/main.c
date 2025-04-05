@@ -31,10 +31,18 @@ int main(int argc, char *argv[])
     // Wczytanie grafu do macierzy sąsiedztwa A
     int *A = get_adjacency_matrix(&input);
 
+    // Obliczenie macierzy stopni grafu D
+    int *D = calc_degree_mat(A, input.v_count);
+
+    // Obliczenie macierzy Laplace'a grafu L
+    int *L = calc_laplacian(A, D, input.v_count);
+
     // Zwolnienie pamięci
-    free(A);
     free(input.vertices_ptrs);
     free(input.vertices_groups);
+    free(A);
+    free(D);
+    free(L);
 
     return EXIT_SUCCESS;
 }
