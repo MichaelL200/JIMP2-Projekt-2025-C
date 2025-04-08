@@ -3,12 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "resource_manager.h"
 #include "config.h"
 #include "input.h"
 #include "mat_vec.h"
 
 int main(int argc, char *argv[])
 {
+    // Inicjalizacja kontekstu zasobów
+    init_resource_context();
+
     // Parsowanie argumentów
     Config config = parse_args(argc, argv);
 
@@ -38,11 +42,11 @@ int main(int argc, char *argv[])
     int *L = calc_laplacian(A, D, input.v_count);
 
     // Zwolnienie pamięci
-    free(input.vertices_ptrs);
-    free(input.vertices_groups);
-    free(A);
-    free(D);
-    free(L);
+    cleanup_resources();
+
+    /*
+        DODAĆ FLAGĘ DEBUGOWANIA
+    */
 
     return EXIT_SUCCESS;
 }

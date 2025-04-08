@@ -14,7 +14,6 @@ typedef struct
     size_t p_count;
     int v_count;
     size_t len;
-    int line_number;
 } Input;
 
 // Otwarcie pliku wejściowego i inicjalizacja

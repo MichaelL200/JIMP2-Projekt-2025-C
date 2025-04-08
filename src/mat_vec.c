@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "mat_vec.h"
+#include "resource_manager.h"
 #include "input.h"
 
 // Wyświetlenie wektora
@@ -36,8 +37,16 @@ int getv(int *v, int a, int b, int n)
 // Wczytanie grafu do macierzy sąsiedztwa A
 int* get_adjacency_matrix(Input *i)
 {
-    printf("\n\tPołączenia dodane do macierzy sąsiedztwa:");
     int *A = calloc(i->v_count * i->v_count, sizeof(int));
+    if(A == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci! (A)\n");
+        cleanup_resources();
+        exit(EXIT_FAILURE);
+    }
+    register_resource(A);
+
+    printf("\n\tPołączenia dodane do macierzy sąsiedztwa:");
     int p = 0;
     int v = 0;
     for(int it = 0; it < (int)i->g_count; it++)
@@ -77,8 +86,10 @@ int* calc_degree_mat(int *A, int n)
     if(D == NULL)
     {
         fprintf(stderr, "Błąd alokacji pamięci!\n");
-        free(A);
+        cleanup_resources();
+        exit(EXIT_FAILURE);
     }
+    register_resource(D);
 
     // dla każdego wierzchołka
     for(int i = 0; i < n; i++)
@@ -116,9 +127,10 @@ int* calc_laplacian(int* A, int* D, int n)
     if(L == NULL)
     {
         fprintf(stderr, "Błąd alokacji pamięci!\n");
-        free(A);
-        free(D);
+        cleanup_resources();
+        exit(EXIT_FAILURE);
     }
+    register_resource(L);
 
     // + D
     for(int i = 0; i < n; i++)
