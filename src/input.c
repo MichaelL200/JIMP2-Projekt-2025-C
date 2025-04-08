@@ -26,23 +26,24 @@ void read_input(Input *i)
 {
     ssize_t read;
     char *line = NULL;
+    int line_number = 0;
 
     while((read = getline(&line, &i->len, i->in)) != -1)
     {
-        i->line_number++;
+        line_number++;
 
         // Odczytanie maksymalnej liczby wierzchołków w wierszu
-        if(i->line_number == 1)
+        if(line_number == 1)
         {
             i->max_vertices = atoi(line);
         }
         // Pominięcie linii dla interfejsu graficznego
-        else if(i->line_number == 2 || i->line_number == 3)
+        else if(line_number == 2 || line_number == 3)
         {
             continue;
         }
         // Odczytanie grafu (krawędzi pomiędzy wierzchołkami i ich numerów)
-        else if(i->line_number == 4 || i->line_number == 5)
+        else if(line_number == 4 || line_number == 5)
         {
             // Usunięcie znaku nowej linii
             if(line[read - 1] == '\n')
@@ -57,7 +58,7 @@ void read_input(Input *i)
                 int val = atoi(token);
 
                 // Odczytanie grup
-                if(i->line_number == 4)
+                if(line_number == 4)
                 {
                     int *tmp = realloc(i->vertices_groups, (i->g_count + 1) * sizeof(int));
                     if(tmp == NULL)
@@ -80,7 +81,7 @@ void read_input(Input *i)
                     }
                 }
                 // Odczytanie wskaźników
-                else if(i->line_number == 5)
+                else if(line_number == 5)
                 {
                     int *tmp = realloc(i->vertices_ptrs, (i->p_count + 1) * sizeof(int));
                     if(tmp == NULL)
