@@ -6,6 +6,7 @@
 #include "config.h"
 #include "input.h"
 #include "mat_vec.h"
+#include "eigenvectors.h"
 
 int main(int argc, char *argv[])
 {
@@ -43,6 +44,8 @@ int main(int argc, char *argv[])
     free(A);
     free(D);
     free(L);
+
+    test_ev();
 
     return EXIT_SUCCESS;
 }

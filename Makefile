@@ -1,6 +1,7 @@
 # Kompilator i jego flagi
 CC = cc
 CFLAGS = -Wall -Wextra -Wuninitialized -g -Iinclude
+LDFLAGS = -lm
 
 # Katalogi
 SRC_DIR = src
@@ -19,7 +20,7 @@ all: $(EXEC) $(LINK)
 
 # Tworzenie pliku wykonywalnego
 $(EXEC): $(OBJ)
-	$(CC) $(OBJ) -o $(EXEC)
+	$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS)
 
 # Tworzenie dowiązania symbolicznego
 $(LINK): $(EXEC)
@@ -27,7 +28,7 @@ $(LINK): $(EXEC)
 
 # Kompilacja plików źródłowych
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ $(LDFLAGS)
 
 # Tworzenie katalogu obj/
 $(OBJ_DIR):
