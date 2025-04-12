@@ -14,12 +14,14 @@ typedef struct
     double* alpha;
     double* beta;
     // wartości własne macierzy T
-    double *eigenvalues_T; // theta
+    double* theta;
     // wektory własne macierzy T (macierz)
-    double *eigenvectors_T; // y
+    double* y;
     // przybliżone wektory własne macierzy L (macierz)
-    double *eigenvectors_L; // x
+    double* x;
 } LanczosEigenV;
+// Nazwy takie same jak na Wikipedii - Lanczos algorithm
+// https://en.wikipedia.org/wiki/Lanczos_algorithm
 
 // Funkcja obliczająca iloczyn skalarny dwóch wektorów o długości n
 double dot_product(double *v1, double *v2, int n);
@@ -27,11 +29,16 @@ double dot_product(double *v1, double *v2, int n);
 // Funkcja obliczająca normę euklidesową wektora o długości n
 double norm(double *v, int n);
 
-// Funkcja mnożąca macierz M (n x n, przechowywana w porządku wierszowym) przez wektor v
-// Wynik zapisywany jest w tablicy result
+// Funkcja mnożąca macierz M (n x n, przechowywana w porządku wierszowym) przez wektor v. Wynik zapisywany w tablicy result
 void mat_vec_multiply(double* M, double* v, double* result, int n);
 
-// Funkcja testująca poprzednie
+// Funkcja testująca funkcje: dot_product, norm i mat_vec_multiply
 void test_ev();
+
+// Inicjalizacja wartości obiektu struktury
+void lanczos_init(LanczosEigenV *l, int n, int m);
+
+// Losowanie dowolnego wektora v₁
+void lanczos_v1_init(LanczosEigenV *l);
 
 #endif // EIGENVECTORS_H
