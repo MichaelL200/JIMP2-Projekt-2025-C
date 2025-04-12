@@ -16,7 +16,8 @@ double dot_product(double *v1, double *v2, int n)
     }
 
     double sum = 0.0;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         sum += v1[i] * v2[i];
     }
     return sum;
@@ -30,11 +31,24 @@ double norm(double *v, int n)
 
 // Funkcja mnożąca macierz M (n x n, przechowywana w porządku wierszowym) przez wektor v
 // Wynik zapisywany jest w tablicy result
-void mat_vec_multiply(double* M, double* v, double* result, int n)
+void mat_vec_multiply_d(double* M, double* v, double* result, int n)
 {
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         result[i] = 0.0;
-        for (int j = 0; j < n; j++) {
+        for (int j = 0; j < n; j++)
+        {
+            result[i] += M[i * n + j] * v[j];
+        }
+    }
+}
+void mat_vec_multiply_i(int* M, double* v, double* result, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        result[i] = 0.0;
+        for (int j = 0; j < n; j++)
+        {
             result[i] += M[i * n + j] * v[j];
         }
     }
@@ -57,15 +71,17 @@ void test_ev()
     printf("\tNorma v1: %f\n", norm_v1);
 
     // Test mat_vec_multiply
-    double M[] = {
+    double M[] =
+    {
         1.0, 2.0, 3.0,
         4.0, 5.0, 6.0,
         7.0, 8.0, 9.0
     };
     double result[3];
-    mat_vec_multiply(M, v1, result, n);
-    printf("\tMnożenie macierzy M przez wektor v1 daje: [");
-    for (int i = 0; i < n; i++) {
+    mat_vec_multiply_d(M, v1, result, n);
+    printf("\tMnożenie macierzy M przez wektor v1 daje:\n\t[");
+    for (int i = 0; i < n; i++)
+    {
         printf("%f", result[i]);
         if (i < n - 1) printf(", ");
     }
@@ -88,8 +104,9 @@ void lanczos_init(LanczosEigenV *l, int n, int m)
     }
     if (m <= 0)
     {
-        fprintf(stderr, "Błąd: liczba iteracji m = %d musi być dodatnia.\n", m);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "\nBłąd: liczba iteracji m = %d musi być dodatnia.\n", m);
+        m = n;
+        printf("\tUstawiono liczbę iteracji m = n = %d.\n", n);
     }
 
     // Ustawienie pól rozmiaru
@@ -168,4 +185,63 @@ void lanczos_v1_init(LanczosEigenV *l)
     {
         l->Q[i] /= norm_v1;
     }
+}
+
+// Pierwszy inicjalizacyjny krok iteracyjny metody Lanczosa
+void lanczos_initial_step(LanczosEigenV *l, int* A)
+{
+    if (l == NULL)
+    {
+        fprintf(stderr, "Błąd: wskaźnik do struktury LanczosEigenV jest NULL.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Pierwszy wektor v1
+    double *v1 = l->Q;  // elementy Q[0, ..., n-1]
+    
+    // Alokacja pamięci dla tymczasowego wektora w1'
+    double *w1_prime = (double *)malloc(l->n * sizeof(double));
+    if (w1_prime == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla w1_prime.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // w1' = A * v1
+    mat_vec_multiply_i(A, v1, w1_prime, l->n);
+    
+    // Obliczanie α1
+    double alpha1 = dot_product(v1, w1_prime, l->n);
+    l->alpha[0] = alpha1;
+    
+    // Obliczanie w1 = w1' - α1 * v1
+    double *w1 = (double *)malloc(l->n * sizeof(double));
+    if (w1 == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla w1.\n");
+        free(w1_prime);
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < l->n; i++)
+    {
+        w1[i] = w1_prime[i] - alpha1 * v1[i];
+    }
+    
+    // Wypisanie wyników
+    printf("\n\tInicjalizacyjny krok iteracyjny metody Lanczosa:\n");
+    printf("\talpha1 = %f\n", alpha1);
+    printf("\tw1 = [");
+    for (int i = 0; i < l->n; i++)
+    {
+        if( !(i % 5) )
+        {
+            printf("\n\t");
+        }
+        printf("%f", w1[i]);
+        if (i < l->n - 1) printf(", ");
+    }
+    printf(" ]\n");
+    
+    free(w1_prime);
+    free(w1);
 }

@@ -36,9 +36,10 @@ int main(int argc, char *argv[])
     test_ev();
     // Inicjalizacja obiektu struktury do metody Lanczosa i obliczeń wartości wektorów własnych macierzy L
     LanczosEigenV lev;
-    lanczos_init(&lev, input.v_count, 2 * input.v_count);
+    lanczos_init(&lev, input.v_count, -2 * input.v_count);
     // Losowanie dowolnego wektora v₁
     lanczos_v1_init(&lev);
+    lanczos_initial_step(&lev, L);
 
     // Zwolnienie pamięci
     free(input.vertices_ptrs);

@@ -30,7 +30,8 @@ double dot_product(double *v1, double *v2, int n);
 double norm(double *v, int n);
 
 // Funkcja mnożąca macierz M (n x n, przechowywana w porządku wierszowym) przez wektor v. Wynik zapisywany w tablicy result
-void mat_vec_multiply(double* M, double* v, double* result, int n);
+void mat_vec_multiply_d(double* M, double* v, double* result, int n);
+void mat_vec_multiply_i(int* M, double* v, double* result, int n);
 
 // Funkcja testująca funkcje: dot_product, norm i mat_vec_multiply
 void test_ev();
@@ -40,5 +41,8 @@ void lanczos_init(LanczosEigenV *l, int n, int m);
 
 // Losowanie dowolnego wektora v₁
 void lanczos_v1_init(LanczosEigenV *l);
+
+// Pierwszy inicjalizacyjny krok iteracyjny metody Lanczosa
+void lanczos_initial_step(LanczosEigenV *l, int* A);
 
 #endif // EIGENVECTORS_H
