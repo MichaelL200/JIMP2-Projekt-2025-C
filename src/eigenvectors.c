@@ -304,8 +304,11 @@ void lanczos_initial_step(LanczosEigenV *l, int* A)
     // Zapisz w1 do W
     for (int i = 0; i < l->n; i++)
     {
-        l->W[i * l->m + 0] = w1[i];
+        l->W[i] = w1[i];
     }
+    
+    l->beta[0] = 0;
+    l->alpha[0] = alpha1;
 
     free(w1_prime);
     free(w1);
@@ -336,6 +339,7 @@ void lanczos(LanczosEigenV *l, int* A)
         beta[j] = norm(w_prev, n);
 
         double *vj = V + j * n;
+        double *vj_prev = V + (j - 1) * n;
 
         // sprawdzenie beta_j
         if(beta[j] > LANCZOS_TOL)
@@ -354,9 +358,10 @@ void lanczos(LanczosEigenV *l, int* A)
                 vj[i] = (double)rand() / RAND_MAX;
             }
             orthogonalize(vj, V, n, j);
+            printf("\tbeta[%d] = %.20f\n", j, beta[j]);
             if(normalize(vj, n) != 0)
             {
-                fprintf(stderr, "Nie udało się znormalizować vj!\n");
+                fprintf(stderr, "Nie udało się znormalizować vj!\n");
                 free(w);
                 exit(EXIT_FAILURE);
             }
@@ -371,12 +376,14 @@ void lanczos(LanczosEigenV *l, int* A)
         // Obliczenie wj = wj' - alpha_j * vj - beta_j * w_{j - 1}
         for(int i = 0; i < n; ++i)
         {
-            w[i] = w[i] - alpha[j] * vj[i] - beta[j] * V[(j - 1) * n + i];
+            w[i] = w[i] - alpha[j] * vj[i] - beta[j] * vj_prev[i];
         }
 
         // Zapisanie wj do W
         for(int i = 0; i < n; ++i)
+        {
             W[j * n + i] = w[i];
+        }
     }
 
     free(w);
@@ -387,7 +394,28 @@ void test3()
 {
     LanczosEigenV l;
     int n = 5;
-    lanczos_init(&l, n, 2 * n);
+    // Macierz Laplace'a grafu
+    int L[25] =
+    {
+        1, -1,  0,  0,  0,
+       -1,  2, -1,  0,  0,
+        0, -1,  2, -1,  0,
+        0,  0, -1,  2, -1,
+        0,  0,  0, -1,  1
+    };
+    printf("\n\tMacierz Laplace'a grafu:\n");
+    for (int i = 0; i < n; i++)
+    {
+        printf("\t\t"); 
+        for (int j = 0; j < n; j++)
+        {
+            printf("%2d ", L[i*n + j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    lanczos_init(&l, n, n);
     lanczos_v1_init(&l);
     double v1_norm = norm(l.V, n);
 
@@ -427,6 +455,22 @@ void test3()
         printf("%lf ", l.V[i]);
     }
     printf("]\n");
+
+    lanczos_initial_step(&l, L);
+
+    lanczos(&l, L);
+
+    // Wypisywanie macierzy V
+    printf("\n\tWynikowa macierz V (%d x %d):\n", n, l.m);
+    for (int i = 0; i < n; ++i)
+    {
+        printf("\t\t");
+        for (int j = 0; j < l.m; ++j)
+        {
+            printf("% .3f ", l.V[j*n + i]);
+        }
+        printf("\n");
+    }
 
     free(l.V);
 }
