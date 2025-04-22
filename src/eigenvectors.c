@@ -397,11 +397,11 @@ void test3()
     // Macierz Laplace'a grafu
     int L[25] =
     {
-        1, -1,  0,  0,  0,
-       -1,  2, -1,  0,  0,
-        0, -1,  2, -1,  0,
-        0,  0, -1,  2, -1,
-        0,  0,  0, -1,  1
+        2, -1, -1,  0,  0,
+       -1,  3, -1, -1,  0,
+       -1, -1,  3,  0, -1,
+        0, -1,  0,  2, -1,
+        0,  0, -1, -1,  2
     };
     printf("\n\tMacierz Laplace'a grafu:\n");
     for (int i = 0; i < n; i++)
@@ -409,7 +409,7 @@ void test3()
         printf("\t\t"); 
         for (int j = 0; j < n; j++)
         {
-            printf("%2d ", L[i*n + j]);
+            printf("%2d ", L[i * n + j]);
         }
         printf("\n");
     }
@@ -468,6 +468,40 @@ void test3()
         for (int j = 0; j < l.m; ++j)
         {
             printf("% .3f ", l.V[j*n + i]);
+        }
+        printf("\n");
+    }
+
+    // Wypisywanie macierzy T (m x m)
+    // Załóżmy, że już masz l.m, alpha[] i beta[]
+    printf("\n\tWynikowa macierz T (%d x %d):\n", l.m, l.m);
+    for (int i = 0; i < l.m; ++i)
+    {
+        printf("\t\t");
+        for (int j = 0; j < l.m; ++j)
+        {
+            double Tij;
+            if (i == j)
+            {
+                // główna przekątna
+                Tij = l.alpha[i];
+            }
+            else if (j == i + 1)
+            {
+                // górna przekątna
+                Tij = l.beta[j];
+            }
+            else if (j + 1 == i)
+            {
+                // dolna przekątna
+                Tij = l.beta[i];
+            }
+            else
+            {
+                // wszystkie inne elementy zero
+                Tij = 0.0;
+            }
+            printf("% .3f ", Tij);
         }
         printf("\n");
     }
