@@ -61,6 +61,8 @@ void mat_vec_multiply_i(int* M, double* v, double* result, int n)
 // Funkcja testująca funkcje: dot_product, norm i mat_vec_multiply
 void test1()
 {
+    printf("\tTEST 1:\n");
+
     // Testowe dane
     double v1[] = {1.0, 2.0, 3.0};
     double v2[] = {4.0, 5.0, 6.0};
@@ -89,7 +91,7 @@ void test1()
         printf("%f", result[i]);
         if (i < n - 1) printf(", ");
     }
-    printf("]\n");
+    printf("]\n\n");
 }
 
 // Funkcja ortogonalizująca wektor w stosunku do poprzednich wektorów
@@ -124,22 +126,24 @@ int normalize(double *v, int n)
 // Funkcja testująca funkcje orthogonalize i normalize
 void test2()
 {
+    printf("\tTEST 2:\n");
+
     int n = 2;
 
     // Przykład 1: orthogonalizacja [1,1] względem v1=[1,0]
     double V1[2] = { 1.0, 0.0 };    // pojedynczy wektor v1 w V
     double v[2]  = { 1.0, 1.0 };
-    printf("\n\tPrzed orthogonalize: v = [%f, %f]\n", v[0], v[1]);
+    printf("\tPrzed orthogonalize: v = [%f, %f]\n", v[0], v[1]);
     orthogonalize(v, V1, n, 1);
     printf("\to orthogonalize:    v = [%f, %f]\n", v[0], v[1]);
     int code = normalize(v, n);
-    printf("\tnormalize zwraca %d, v = [%f, %f]\n\n", code, v[0], v[1]);
+    printf("\tnormalize zwraca %d, v = [%f, %f]\n", code, v[0], v[1]);
 
     // Przykład 2: normalizacja [3,4]
     double u[2] = { 3.0, 4.0 };
     printf("\tPrzed normalize: u = [%f, %f]\n", u[0], u[1]);
     code = normalize(u, n);
-    printf("\tnormalize zwraca %d, u = [%f, %f]\n\n", code, u[0], u[1]);
+    printf("\tnormalize zwraca %d, u = [%f, %f]\n", code, u[0], u[1]);
 
     // Przykład 3: próba normalizacji wektora zerowego
     double w[2] = { 0.0, 0.0 };
@@ -227,23 +231,17 @@ void lanczos_init(LanczosEigenV *l, int n, int m)
 // Losowanie dowolnego wektora v₁
 void lanczos_v1_init(LanczosEigenV *l)
 {
+    // Zainicjalizowanie generatora liczb losowych
+    srand((unsigned int)time(NULL));
+
     // Wypełnianie pierwszego wektora losowymi wartościami
     for (int i = 0; i < l->n; i++)
     {
         l->V[i] = (double)rand() / (double)RAND_MAX;
     }
 
-    // Normalizacja v₁: obliczenie normy i podzielenie każdego elementu przez normę
-    double norm_v1 = norm(l->V, l->n);
-    if (norm_v1 < NORM_TOL)
-    {
-        fprintf(stderr, "Błąd: wylosowany wektor ma zbyt małą normę.\n");
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < l->n; i++)
-    {
-        l->V[i] /= norm_v1;
-    }
+    // Normalizacja v₁
+    normalize(l->V, l->n);
 }
 
 // Pierwszy inicjalizacyjny krok iteracyjny metody Lanczosa
@@ -324,10 +322,11 @@ void lanczos(LanczosEigenV *l, int* A)
     double *alpha = l->alpha;
     double *beta  = l->beta;
 
+    // Inicjalizacja wektora tymczasowego dla wj' a potem dla w
     double *w = (double *)malloc(n * sizeof(double));
     if(w == NULL)
     {
-        fprintf(stderr, "Błąd alokacji pamięcfi dla w.\n");
+        fprintf(stderr, "Błąd alokacji pamięci dla w.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -367,13 +366,13 @@ void lanczos(LanczosEigenV *l, int* A)
             }
         }
 
-        // Obliczenie wj' = A * vj
+        // Obliczenie wj' = A * vj (w to wj')
         mat_vec_multiply_i(A, vj, w, n);
 
-        // Obliczenie alpha_j = wj' * vj
+        // Obliczenie alpha_j = wj' * vj (w to wj')
         alpha[j] = dot_product(w, vj, n);
 
-        // Obliczenie wj = wj' - alpha_j * vj - beta_j * w_{j - 1}
+        // Obliczenie wj = wj' - alpha_j * vj - beta_j * w_{j - 1} (nadpisywanie w)
         for(int i = 0; i < n; ++i)
         {
             w[i] = w[i] - alpha[j] * vj[i] - beta[j] * vj_prev[i];
@@ -392,6 +391,8 @@ void lanczos(LanczosEigenV *l, int* A)
 // Funkcja testująca funkcje metody Lanczosa
 void test3()
 {
+    printf("\tTEST 3:\n");
+
     LanczosEigenV l;
     int n = 5;
     // Macierz Laplace'a grafu
@@ -403,7 +404,7 @@ void test3()
         0, -1,  0,  2, -1,
         0,  0, -1, -1,  2
     };
-    printf("\n\tMacierz Laplace'a grafu:\n");
+    printf("\tMacierz Laplace'a grafu:\n");
     for (int i = 0; i < n; i++)
     {
         printf("\t\t"); 
@@ -413,11 +414,18 @@ void test3()
         }
         printf("\n");
     }
-    printf("\n");
 
     lanczos_init(&l, n, n);
     lanczos_v1_init(&l);
     double v1_norm = norm(l.V, n);
+
+    // Wypisanie v1
+    printf("\n\tv1 = [ ");
+    for(int i = 0; i < n; i++)
+    {
+        printf("%lf ", l.V[i]);
+    }
+    printf("]");
 
     // Test normy
     printf("\tNorma v1: %.6g\n", v1_norm);
@@ -441,27 +449,19 @@ void test3()
     }
     if(non_zero_elements > 0)
     {
-        printf("\tTest udany - v1 ma niezerowe elementy\n");
+        printf("\tTest udany - v1 ma niezerowe elementy");
     }
     else
     {
-        printf("Test nieudany - v1 ma wszystkie zerowe elementy\n");
+        printf("Test nieudany - v1 ma wszystkie zerowe elementy");
     }
-
-    // Wypisanie v1
-    printf("\n\tv1 = [ ");
-    for(int i = 0; i < n; i++)
-    {
-        printf("%lf ", l.V[i]);
-    }
-    printf("]\n");
 
     lanczos_initial_step(&l, L);
 
     lanczos(&l, L);
 
     // Wypisywanie macierzy V
-    printf("\n\tWynikowa macierz V (%d x %d):\n", n, l.m);
+    printf("\tWynikowa macierz V (%d x %d):\n", n, l.m);
     for (int i = 0; i < n; ++i)
     {
         printf("\t\t");
@@ -474,7 +474,7 @@ void test3()
 
     // Wypisywanie macierzy T (m x m)
     // Załóżmy, że już masz l.m, alpha[] i beta[]
-    printf("\n\tWynikowa macierz T (%d x %d):\n", l.m, l.m);
+    printf("\tWynikowa macierz T (%d x %d):\n", l.m, l.m);
     for (int i = 0; i < l.m; ++i)
     {
         printf("\t\t");
