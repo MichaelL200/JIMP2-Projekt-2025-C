@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     int *L = calc_laplacian(A, D, input.v_count);
     free(D);
 
-    // Testy funkcji z eigenvectors
+    // Testy funkcji z modułu eigenvectors
     test1();
     test2();
     test3();

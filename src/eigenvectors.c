@@ -9,6 +9,8 @@
 // Tolerancje
 #define NORM_TOL 1e-10
 #define LANCZOS_TOL 1e-12
+#define MAX_ITER 1000
+#define TOLERANCE 1e-10
 
 // Funkcja obliczająca iloczyn skalarny dwóch wektorów o długości n
 double dot_product(double *v1, double *v2, int n)
@@ -388,7 +390,133 @@ void lanczos(LanczosEigenV *l, int* A)
     free(w);
 }
 
-// Funkcja testująca funkcje metody Lanczosa
+// Funkcja budująca macierz T z wartości własnych
+double* build_T(LanczosEigenV *l)
+{
+    // Sprawdzenie poprawności argumentów
+    if (l == NULL)
+    {
+        fprintf(stderr, "Błąd: wskaźnik do struktury LanczosEigenV jest NULL.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Inicjalizacaja macierzy T
+    double *T = (double *)malloc(l->m * l->m * sizeof(double));
+    if (T == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla T.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Zapisanie wartości do macierzy T
+    for (int i = 0; i < l->m; ++i)
+    {
+        for (int j = 0; j < l->m; ++j)
+        {
+            if (i == j)
+            {
+                T[i * l->m + j] = l->alpha[i];
+            }
+            else if (j == i + 1)
+            {
+                T[i * l->m + j] = l->beta[j];
+            }
+            else if (j + 1 == i)
+            {
+                T[i * l->m + j] = l->beta[i];
+            }
+            else
+            {
+                T[i * l->m + j] = 0.0;
+            }
+        }
+    }
+
+    return T;
+}
+
+// Funkcja sprawdzająca zbieżność macierzy T
+int check_convergence(double* T, int m, double tol)
+{
+    for (int i = 1; i < m; ++i)
+    {
+        if (fabs(T[i * m + (i - 1)]) > tol)
+        {
+            return 0; // Nie zbiega
+        }
+    }
+
+    return 1; // Zbiega
+}
+
+// Algorytm QR do obliczenia wartości własnych macierzy trójdiagonalnej T
+void qr_algorithm(LanczosEigenV *l)
+{
+    double* T = build_T(l);
+    int iter = 0;
+    int converged = 0;
+
+    // QR rozkład T = QR (rotacja Givensa)
+    while (iter < MAX_ITER && !converged)
+    { 
+        for (int i = 0; i < l->m; ++i)
+        {
+            double a = T[i * l->m + i];
+            double b = T[(i + 1) * l->m + i];
+
+            double r = hypot(a, b);  // sqrt(a^2 + b^2)
+            double c = a / r;
+            double s = -b / r;
+
+            // Zastosowanie rotacji Givensa z lewej strony: G^T * T
+            for (int j = 0; j < l->m; ++j)
+            {
+                double t1 = c * T[i * l->m + j] - s * T[(i + 1) * l->m + j];
+                double t2 = s * T[i * l->m + j] + c * T[(i + 1) * l->m + j];
+                T[i * l->m + j] = t1;
+                T[(i + 1) * l->m + j] = t2;
+            }
+
+            // Zastosowanie rotacji Givensa z prawej strony: T * G
+            for (int j = 0; j < l->m; ++j)
+            {
+                double t1 = c * T[j * l->m + i] - s * T[j * l->m + (i + 1)];
+                double t2 = s * T[j * l->m + i] + c * T[j * l->m + (i + 1)];
+                T[j * l->m + i] = t1;
+                T[j * l->m + (i + 1)] = t2;
+            }
+        }
+
+        converged = check_convergence(T, l->m, TOLERANCE);
+        iter++;
+    }
+
+    // Przepisanie wartości własnych z przekątnej macierzy T
+    for (int i = 0; i < l->m; ++i)
+    {
+        l->theta[i] = T[i * l->m + i];
+    }
+
+    // Wypisanie wartości własnych
+    printf("\n\tWartości własne macierzy T:\n");
+    for (int i = 0; i < l->m; ++i)
+    {
+        printf("\t\ttheta[%d] = %f\n", i, l->theta[i]);
+    }
+    printf("\tLiczba iteracji: %d\n", iter);
+    if (converged)
+    {
+        printf("\tZbieżność osiągnięta po %d iteracjach.\n", iter);
+    }
+    else
+    {
+        printf("\tNie osiągnięto zbieżności po %d iteracjach.\n", iter);
+    }
+
+    free(T);
+}
+
+// Funkcja testująca funkcje metody Lanczosa i algotytm QR
 void test3()
 {
     printf("\tTEST 3:\n");
@@ -412,7 +540,10 @@ void test3()
         {
             printf("%2d ", L[i * n + j]);
         }
-        printf("\n");
+        if(i != n - 1)
+        {
+            printf("\n");
+        }
     }
 
     lanczos_init(&l, n, n);
@@ -503,8 +634,14 @@ void test3()
             }
             printf("% .3f ", Tij);
         }
-        printf("\n");
+        if(i != l.m - 1)
+        {
+            printf("\n");
+        }
     }
+
+    // Algorytm QR
+    qr_algorithm(&l);
 
     free(l.V);
 }

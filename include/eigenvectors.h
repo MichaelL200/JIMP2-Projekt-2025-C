@@ -59,7 +59,16 @@ void lanczos_initial_step(LanczosEigenV *l, int* A);
 // Iteracje metody Lanczosa dla j = 2, ..., m
 void lanczos(LanczosEigenV *l, int *A);
 
-// Funkcja testująca funkcje metody Lanczosa
+// Funkcja budująca macierz T z wartości własnych
+double* build_T(LanczosEigenV *l);
+
+// Funkcja sprawdzająca zbieżność macierzy T
+int check_convergence(double* T, int m, double tol);
+
+// Algorytm QR do obliczenia wartości własnych macierzy trójdiagonalnej T
+void qr_algorithm(LanczosEigenV *l);
+
+// Funkcja testująca funkcje metody Lanczosa i algotytm QR
 void test3();
 
 #endif // EIGENVECTORS_H
