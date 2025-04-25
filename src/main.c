@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     test1();
     test2();
     test3();
+    
     /*
     // Inicjalizacja obiektu struktury do metody Lanczosa i obliczeń wartości wektorów własnych macierzy L
     LanczosEigenV lev;

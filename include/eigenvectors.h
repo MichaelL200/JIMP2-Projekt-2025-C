@@ -68,6 +68,15 @@ int check_convergence(double* T, int m, double tol);
 // Algorytm QR do obliczenia wartości własnych macierzy trójdiagonalnej T
 void qr_algorithm(LanczosEigenV *l);
 
+// Rozwiązanie układu równań (T - θᵢ I) x = d (algorytm Thomasa)
+void solve_tridiagonal(const double* a, const double* b, const double* c, const double* d, double* x, int n);
+
+// Obliczanie wektorów własnych macierzy T
+void compute_eigenvectors(LanczosEigenV *l);
+
+// Obliczenie X = V * Y
+void compute_approximate_eigenvectors(LanczosEigenV *l);
+
 // Funkcja testująca funkcje metody Lanczosa i algotytm QR
 void test3();
 

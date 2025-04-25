@@ -218,15 +218,8 @@ void lanczos_init(LanczosEigenV *l, int n, int m)
         exit(EXIT_FAILURE);
     }
 
-    // Alokacja dla wektorów własnych y – macierz o wymiarach m x m
-    l->Y = (double *)calloc(m * m, sizeof(double));
-    if (l->Y == NULL)
-    {
-        fprintf(stderr, "Błąd alokacji pamięci dla Y.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Przybliżone wektory własne L (x)
+    // Przybliżone wektory własne T (y) i L (x)
+    l->Y = NULL;
     l->X = NULL;
 }
 
@@ -401,7 +394,7 @@ double* build_T(LanczosEigenV *l)
     }
 
     // Inicjalizacaja macierzy T
-    double *T = (double *)malloc(l->m * l->m * sizeof(double));
+    double *T = (double *)calloc(l->m * l->m, sizeof(double));
     if (T == NULL)
     {
         fprintf(stderr, "Błąd alokacji pamięci dla T.\n");
@@ -424,10 +417,6 @@ double* build_T(LanczosEigenV *l)
             else if (j + 1 == i)
             {
                 T[i * l->m + j] = l->beta[i];
-            }
-            else
-            {
-                T[i * l->m + j] = 0.0;
             }
         }
     }
@@ -459,7 +448,7 @@ void qr_algorithm(LanczosEigenV *l)
     // QR rozkład T = QR (rotacja Givensa)
     while (iter < MAX_ITER && !converged)
     { 
-        for (int i = 0; i < l->m; ++i)
+        for (int i = 0; i < l->m - 1; ++i)
         {
             double a = T[i * l->m + i];
             double b = T[(i + 1) * l->m + i];
@@ -513,7 +502,185 @@ void qr_algorithm(LanczosEigenV *l)
         printf("\tNie osiągnięto zbieżności po %d iteracjach.\n", iter);
     }
 
+    // Obliczenie wektorów własnych
+    
+
     free(T);
+}
+
+// Rozwiązanie układu równań (T - θᵢ I) x = d (algorytm Thomasa)
+void solve_tridiagonal(const double* a, const double* b, const double* c, const double* d, double* x, int n)
+{
+    double* c_prime = malloc(n * sizeof(double));
+    double* d_prime = malloc(n * sizeof(double));
+
+    if (c_prime == NULL || d_prime == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    c_prime[0] = c[0] / b[0];
+    d_prime[0] = d[0] / b[0];
+
+    for (int i = 1; i < n - 1; i++)
+    {
+        double m = b[i] - a[i - 1] * c_prime[i - 1];
+        c_prime[i] = c[i] / m;
+        d_prime[i] = (d[i] - a[i - 1] * d_prime[i - 1]) / m;
+    }
+    // dla ostatniego elementu
+    double m = b[n - 1] - a[n - 2] * c_prime[n - 2];
+    d_prime[n - 1] = (d[n - 1] - a[n - 2] * d_prime[n - 2]) / m;
+
+    x[n - 1] = d_prime[n - 1];
+    for (int i = n - 2; i >= 0; i--)
+    {
+        x[i] = d_prime[i] - c_prime[i] * x[i + 1];
+    }
+
+    free(c_prime);
+    free(d_prime);
+}
+
+// Obliczanie wektorów własnych macierzy T
+void compute_eigenvectors(LanczosEigenV *l)
+{
+    // Sprawdzenie poprawności argumentów
+    if (l == NULL)
+    {
+        fprintf(stderr, "Błąd: wskaźnik do struktury LanczosEigenV jest NULL.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int n = l->n;
+    int m = l->m;
+
+    // Alokacja dla wektorów własnych y – macierz o wymiarach m x m
+    l->Y = (double *)calloc(m * m, sizeof(double));
+    if (l->Y == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla Y.\n");
+        exit(EXIT_FAILURE);
+    }
+    // Alokacja dla wektorów własnych x – macierz o wymiarach n x m
+    l->X = (double *)calloc(n * m, sizeof(double));
+    if (l->X == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla X.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Wektory pomocnicze dla algorytmu Thomas'a
+    double *a = calloc(m - 1, sizeof(double)); // podprzekątna
+    double *b = calloc(m, sizeof(double));     // przekątna
+    double *c = calloc(m - 1, sizeof(double)); // nadprzekątna
+    double *d = calloc(m, sizeof(double));     // prawa strona
+    double *x = calloc(m, sizeof(double));     // rozwiązanie
+    if (!a || !b || !c || !d || !x)
+    {
+        fprintf(stderr, "Błąd: nie udało się zaalokować pamięci dla wektorów pomocniczych.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Wypełnienie wektorów a, b, c na podstawie macierzy T
+    for (int i = 0; i < m; ++i)
+    {
+        b[i] = l->alpha[i];
+        if (i < m - 1)
+        {
+            a[i] = l->beta[i];
+            c[i] = l->beta[i];
+        }
+    }
+
+    for (int i = 0; i < m; ++i)
+    {
+        // Przygotowanie prawej strony d (wektor b)
+        for (int j = 0; j < m; ++j)
+        {
+            d[j] = (j == 0) ? 1.0 : 0.0; // wektor jednostkowy jako początkowy
+        }
+
+        // Modyfikacja przekątnej dla (T - θᵢ I)
+        for (int j = 0; j < m; ++j)
+        {
+            b[j] = l->alpha[j] - l->theta[i];
+        }
+
+        // Rozwiązanie układu równań (T - θᵢ I) x = d (algorytm Thomasa)
+        solve_tridiagonal(a, b, c, d, x, m);
+
+        // Normalizacja wektora x
+        double norm = 0.0;
+        for (int j = 0; j < m; ++j)
+        {
+            norm += x[j] * x[j];
+        }
+        norm = sqrt(norm);
+        for (int j = 0; j < m; ++j)
+        {
+            l->Y[j * m + i] = x[j] / norm;
+        }
+    }
+
+    free(a);
+    free(b);
+    free(c);
+    free(d);
+    free(x);
+
+    // Wypisanie wektorów własnych T
+    printf("\tWektory własne macierzy T:\n");
+    for (int i = 0; i < m; ++i)
+    {
+        printf("\t\tY[%d] = [", i);
+        for (int j = 0; j < m; ++j)
+        {
+            printf("%f", l->Y[j * m + i]);
+            if (j < m - 1) printf(", ");
+        }
+        printf("]\n");
+    }
+}
+
+// Obliczenie X = V * Y
+void compute_approximate_eigenvectors(LanczosEigenV *l)
+{
+    int n = l->n;
+    int m = l->m;
+    l->X = calloc(n * m, sizeof(double));
+    if (l->X == NULL)
+    {
+        fprintf(stderr, "Błąd: nie udało się zaalokować pamięci dla macierzy X.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < m; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            double sum = 0.0;
+            for (int k = 0; k < m; ++k)
+            {
+                sum += l->V[j * m + k] * l->Y[k * m + i];
+            }
+            l->X[j * m + i] = sum;
+        }
+    }
+
+    // Wypisanie przybliżonych wektorów własnych L
+    printf("\tPrzybliżone wektory własne L:\n");
+    for (int i = 0; i < m; ++i)
+    {
+        printf("\t\tX[%d] = [", i);
+        for (int j = 0; j < n; ++j)
+        {
+            printf("%f", l->X[j * m + i]);
+            if (j < n - 1) printf(", ");
+        }
+        printf("]\n");
+    }
 }
 
 // Funkcja testująca funkcje metody Lanczosa i algotytm QR
@@ -643,5 +810,11 @@ void test3()
     // Algorytm QR
     qr_algorithm(&l);
 
+    // Obliczenie wektorów własnych T
+    compute_eigenvectors(&l);
+
+    // Obliczenie przybliżonych wektorów własnych L
+    compute_approximate_eigenvectors(&l);
+    
     free(l.V);
 }
