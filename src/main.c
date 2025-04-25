@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
     open_init_input(&input, config.input_file);
     // Czytanie pliku linia po linii
     read_input(&input);
+    // Sprawdzenie, czy dane wsadowe są poprawne dla tego grafu
+    check_input_data(config.parts, input.v_count);
     // Wypisanie informacji wczytanych z pliku wejściowego
     print_input(&input);
 
@@ -48,6 +50,8 @@ int main(int argc, char *argv[])
     lanczos_initial_step(&lev, L);
     srand((unsigned int)time(NULL));
     lanczos(&lev, L);
+    qr_algorithm(&lev);
+    compute_approximate_eigenvectors(&lev);
     */
 
     // Zwolnienie pamięci

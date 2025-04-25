@@ -5,8 +5,23 @@
 
 #include "config.h"
 
+// Funkcja sprawdzająca, czy nazwa pliku zawiera tylko dozwolone znaki
+int is_valid_filename(char *filename)
+{
+    // Sprawdzenie, czy nazwa pliku zawiera tylko dozwolone znaki
+    for (int i = 0; filename[i] != '\0'; i++)
+    {
+        if (filename[i] == '/' || filename[i] == '\\' || filename[i] == ':' || filename[i] == '*' || filename[i] == '?' || filename[i] == '"' || filename[i] == '<' || filename[i] == '>' || filename[i] == '|')
+        {
+            return 0; // Niedozwolony znak
+        }
+    }
+    return 1; // Dozwolone znaki
+}
+
 // Parsowanie argumentów, zwrócenie skonfigurowanej struktury
-Config parse_args(int argc, char **argv) {
+Config parse_args(int argc, char **argv)
+{
     Config c;
 
     // Ustawienia domyślne
@@ -18,30 +33,74 @@ Config parse_args(int argc, char **argv) {
 
     // Parsowanie argumentów
     int opt;
-    while ((opt = getopt(argc, argv, "p:m:o:f:")) != -1) {
-        switch (opt) {
+    while ((opt = getopt(argc, argv, "p:m:o:f:")) != -1)
+    {
+        switch (opt)
+        {
             // Parts
             case 'p':
                 c.parts = atoi(optarg);
+                if (c.parts < 1)
+                {
+                    fprintf(stderr, "Liczba części musi być większa od 0\n");
+                    c.parts = 2;
+                }
                 break;
             // Margin
             case 'm':
                 c.margin = atoi(optarg);
+                if (c.margin < 0)
+                {
+                    fprintf(stderr, "Margines musi być większy od 0.\n");
+                    c.margin = 10;
+                }
                 break;
             // Output
             case 'o':
-                c.output_file = optarg;
+                if (is_valid_filename(optarg))
+                {
+                    c.output_file = optarg;
+                }
+                else
+                {
+                    fprintf(stderr, "Nazwa pliku wyjściowego zawiera niedozwolone znaki. Ustawiono domyślną nazwę: output.txt / output.bin (w zależności od formatu)\n");
+                    c.output_file = "output.txt";
+                }
                 break;
             // Format
             case 'f':
                 c.format = optarg;
+                // Sprawdzenie poprawności formatu
+                if (strcmp(c.format, "txt") != 0 && strcmp(c.format, "bin") != 0)
+                {
+                    fprintf(stderr, "Nieznany format: %s. Ustawiono domyślny format: txt\n", c.format);
+                    c.format = "txt";
+                }
                 break;
             // Nieznana flaga
             case '?':
                 fprintf(stderr, "Nieznana flaga: -%c\n", optopt);
-                exit(EXIT_FAILURE);
         }
     }
+
+    // Sprawdzenie rozszerzenia output_file i poprawienie go jeśli trzeba
+    if (c.output_file != NULL)
+    {
+        const char *dot = strrchr(c.output_file, '.');
+        if (dot == NULL || strcmp(dot + 1, c.format) != 0)
+        {
+            // Nowe miejsce na nazwę z nowym rozszerzeniem
+            size_t base_len = dot ? (size_t)(dot - c.output_file) : strlen(c.output_file);
+            size_t ext_len = strlen(c.format);
+            char *new_output = malloc(base_len + ext_len + 2); // +1 na '.' +1 na '\\0'
+            if (!new_output)
+            {
+                perror("malloc");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
     return c;
 }
 
@@ -57,8 +116,7 @@ void validate_input_file(Config *c, int argc, char **argv)
         const char* ext = ".csrrg";
         size_t len_f = strlen(c->input_file);
         size_t len_e = strlen(ext);
-        if(len_f < len_e ||
-         strcmp(c->input_file + len_f - len_e, ext) != 0)
+        if(len_f < len_e || strcmp(c->input_file + len_f - len_e, ext) != 0)
         {
             fprintf(stderr, "\tZłe rozszerzenie pliku wejściowego. Popawne rozszerzenie to .csrrg\n");
             exit(EXIT_FAILURE);

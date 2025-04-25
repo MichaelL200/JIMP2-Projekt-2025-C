@@ -5,6 +5,7 @@
 
 #include "input.h"
 #include "mat_vec.h"
+#include "config.h"
 
 // Otwarcie pliku wejściowego i inicjalizacja
 void open_init_input(Input *i, const char *file)
@@ -106,6 +107,17 @@ void read_input(Input *i)
 
     // Zamknięcie pliku wejściowego
     fclose(i->in);
+}
+
+// Sprawdzenie, czy dane wsadowe są poprawne dla tego grafu
+void check_input_data(int parts, int count)
+{
+    // Sprawdzenie, czy liczba podziałów nie jest zbyt duża w porównaniu do liczby wierzchołków
+    if (2 * parts > count)
+    {
+        fprintf(stderr, "Błąd: Podwojona liczba podziałów (2 * %d = %d) jest większa niż liczba wierzchołków (%d). Metoda spektralna nieoptymalna.\n", parts, 2 * parts, count);
+        exit(EXIT_FAILURE);
+    }
 }
 
 // Wypisanie informacji wczytanych z pliku wejściowego
