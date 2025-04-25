@@ -7,3 +7,6 @@ gd
 
 # Pliki edytora
 .vscode/
+
+# Plik pomocniczy do sprawdzania obliczeń wartości i wektorów własnych
+/ev/

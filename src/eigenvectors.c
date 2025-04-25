@@ -2,6 +2,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "eigenvectors.h"
 #include "mat_vec.h"
@@ -438,9 +439,21 @@ int check_convergence(double* T, int m, double tol)
     return 1; // Zbiega
 }
 
-// Algorytm QR do obliczenia wartości własnych macierzy trójdiagonalnej T
+// Algorytm QR z rotacjami Givensa do obliczenia wartości własnych macierzy trójdiagonalnej T
 void qr_algorithm(LanczosEigenV *l)
 {
+    // Inicjalizacja macierzy Q jako macierzy jednostkowej
+    double* Q_total = (double *)calloc(l->m * l->m, sizeof(double));
+    if (Q_total == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla Q_total.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < l->m; ++i)
+    {
+        Q_total[i * l->m + i] = 1.0;
+    }    
+
     double* T = build_T(l);
     int iter = 0;
     int converged = 0;
@@ -448,12 +461,27 @@ void qr_algorithm(LanczosEigenV *l)
     // QR rozkład T = QR (rotacja Givensa)
     while (iter < MAX_ITER && !converged)
     { 
+        double* Q = (double *)calloc(l->m * l->m, sizeof(double));
+        if (Q == NULL)
+        {
+            fprintf(stderr, "Błąd alokacji pamięci dla Q.\n");
+            free(T);
+            free(Q_total);
+            exit(EXIT_FAILURE);
+        }
+        for (int i = 0; i < l->m; ++i)
+        {
+            Q[i * l->m + i] = 1.0;
+        }
+
+        // Obliczenie rotacji Givensa
         for (int i = 0; i < l->m - 1; ++i)
         {
             double a = T[i * l->m + i];
             double b = T[(i + 1) * l->m + i];
 
             double r = hypot(a, b);  // sqrt(a^2 + b^2)
+            if (r == 0.0) continue;
             double c = a / r;
             double s = -b / r;
 
@@ -474,13 +502,38 @@ void qr_algorithm(LanczosEigenV *l)
                 T[j * l->m + i] = t1;
                 T[j * l->m + (i + 1)] = t2;
             }
+
+            // Zbudowanie macierzy Q z aktualnej rotacji Givensa
+            for (int j = 0; j < l->m; ++j)
+            {
+                double q1 = Q[j * l->m + i];
+                double q2 = Q[j * l->m + (i + 1)];
+                Q[j * l->m + i] = c * q1 - s * q2;
+                Q[j * l->m + (i + 1)] = s * q1 + c * q2;
+            }
         }
+
+        // Zaktualizowanie macierzy Q_total (Q_total = Q_total * Q)
+        double* Q_tmp = calloc(l->m * l->m, sizeof(double));
+        for (int i = 0; i < l->m; ++i)
+        {
+            for (int j = 0; j < l->m; ++j)
+            {
+                for (int k = 0; k < l->m; ++k)
+                {
+                    Q_tmp[i * l->m + j] += Q_total[i * l->m + k] * Q[k * l->m + j];
+                }
+            }
+        }
+        memcpy(Q_total, Q_tmp, l->m * l->m * sizeof(double));
+        free(Q_tmp);
+        free(Q);
 
         converged = check_convergence(T, l->m, TOLERANCE);
         iter++;
     }
 
-    // Przepisanie wartości własnych z przekątnej macierzy T
+    // Zapisanie wartości własnych z przekątnej macierzy T
     for (int i = 0; i < l->m; ++i)
     {
         l->theta[i] = T[i * l->m + i];
@@ -502,15 +555,48 @@ void qr_algorithm(LanczosEigenV *l)
         printf("\tNie osiągnięto zbieżności po %d iteracjach.\n", iter);
     }
 
-    // Obliczenie wektorów własnych
-    
+    // Inicjalziacja macierzy Y
+    l->Y = (double *)calloc(l->m * l->m, sizeof(double));
+    if (l->Y == NULL)
+    {
+        fprintf(stderr, "Błąd alokacji pamięci dla Y.\n");
+        free(T);
+        free(Q_total);
+        exit(EXIT_FAILURE);
+    }
+
+    // Zapisanie wektorów własnych macierzy T z Q_total
+    for (int i = 0; i < l->m * l->m; ++i)
+    {
+        l->Y[i] = Q_total[i];
+    }
+
+    // Wypisanie wektorów własnych
+    printf("\tWektory własne macierzy T:\n");
+    for (int i = 0; i < l->m; ++i)
+    {
+        printf("\t\tY[%d] = [", i);
+        for (int j = 0; j < l->m; ++j)
+        {
+            printf("%f", l->Y[i * l->m + j]);
+            if (j < l->m - 1) printf(", ");
+        }
+        printf("]\n");
+    }
 
     free(T);
 }
 
+/*
 // Rozwiązanie układu równań (T - θᵢ I) x = d (algorytm Thomasa)
 void solve_tridiagonal(const double* a, const double* b, const double* c, const double* d, double* x, int n)
 {
+    if(n < 1)
+    {
+        fprintf(stderr, "Błąd: rozmiar macierzy n = %d musi być większy niż 0.\n", n);
+        exit(EXIT_FAILURE);
+    }
+
     double* c_prime = malloc(n * sizeof(double));
     double* d_prime = malloc(n * sizeof(double));
 
@@ -643,6 +729,7 @@ void compute_eigenvectors(LanczosEigenV *l)
         printf("]\n");
     }
 }
+*/
 
 // Obliczenie X = V * Y
 void compute_approximate_eigenvectors(LanczosEigenV *l)
@@ -677,7 +764,10 @@ void compute_approximate_eigenvectors(LanczosEigenV *l)
         for (int j = 0; j < n; ++j)
         {
             printf("%f", l->X[j * m + i]);
-            if (j < n - 1) printf(", ");
+            if (j < n - 1)
+            {
+                printf(", ");
+            }
         }
         printf("]\n");
     }
@@ -726,7 +816,7 @@ void test3()
     printf("]");
 
     // Test normy
-    printf("\tNorma v1: %.6g\n", v1_norm);
+    printf("\n\tNorma v1: %.6g\n", v1_norm);
     if(fabs(v1_norm - 1.0) < NORM_TOL)
     {
         printf("\tTest udany - v1 znormalizowane!\n");
@@ -807,11 +897,13 @@ void test3()
         }
     }
 
-    // Algorytm QR
+    // Algorytm QR - obliczanie wartości i wektorów własnych T
     qr_algorithm(&l);
 
+    /*
     // Obliczenie wektorów własnych T
     compute_eigenvectors(&l);
+    */
 
     // Obliczenie przybliżonych wektorów własnych L
     compute_approximate_eigenvectors(&l);
