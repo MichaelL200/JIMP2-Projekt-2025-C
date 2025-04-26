@@ -9,6 +9,7 @@
 #include "mat_vec.h"
 #include "eigenvectors.h"
 #include "test.h"
+#include "clusterization.h"
 
 int main(int argc, char *argv[])
 {

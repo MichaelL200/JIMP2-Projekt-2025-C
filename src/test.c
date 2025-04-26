@@ -5,6 +5,7 @@
 #include "test.h"
 #include "mat_vec.h"
 #include "eigenvectors.h"
+#include "clusterization.h"
 
 // Funkcja testująca funkcje: dot_product, norm i mat_vec_multiply
 void test1()
@@ -205,6 +206,9 @@ void test3()
 
     // Obliczenie przybliżonych wektorów własnych L
     compute_approximate_eigenvectors(&l);
+
+    // Podział grafu na 2 części
+    clusterization(l.X, l.n, 2, l.m, 10);
     
     free(l.V);
 }
