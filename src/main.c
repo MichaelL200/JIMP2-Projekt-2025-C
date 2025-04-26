@@ -10,6 +10,7 @@
 #include "eigenvectors.h"
 #include "test.h"
 #include "clusterization.h"
+#include "output.h"
 
 int main(int argc, char *argv[])
 {
@@ -43,19 +44,28 @@ int main(int argc, char *argv[])
     test2();
     test3();
     
-    /*
+    
     // Inicjalizacja obiektu struktury do metody Lanczosa i obliczeń wartości wektorów własnych macierzy L
     LanczosEigenV lev;
     lanczos_init(&lev, input.v_count, input.v_count);
     // Losowanie dowolnego wektora v₁
     lanczos_v1_init(&lev);
+    // Inicjalizacyjny krok iteracyjny metody Lanczosa
     lanczos_initial_step(&lev, L);
+    // Inicjalizacja generatora liczb losowych
     srand((unsigned int)time(NULL));
+    // Iteracje metody Lanczosa dla j = 2, ..., m
     lanczos(&lev, L);
+    // Algorytm QR - obliczanie wartości i wektorów własnych T
     qr_algorithm(&lev);
+    // Obliczenie przybliżonych wektorów własnych L
     compute_approximate_eigenvectors(&lev);
+    
+    // Podział grafu na części
     clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
-    */
+
+    // Wypisanie podzielnego grafu do pliku wyjściowego
+    write_output(config.output_file, &input, A, input.v_count);
 
     // Zwolnienie pamięci
     free(input.vertices_ptrs);

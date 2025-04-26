@@ -6,7 +6,7 @@
 
 #include "clusterization.h"
 
-#define MAX_ITERATIONS 500
+#define MAX_ITERATIONS 100
 #define MAX_ATTEMPTS 20
 
 // Funkcja pomocnicza do liczenia odległości euklidesowej

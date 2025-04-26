@@ -1,12 +1,15 @@
 # Katalog z plikami wynikowymi kompilacji
 /obj/
 
+# Katalog z plikami wyjściowymi
+/output/
+
+# Katalog z plikami pomocniczymi do sprawdzania obliczeń wartości i wektorów własnych
+/ev/
+
 # Plik wykonywalny + linker
 graphdivider
 gd
 
 # Pliki edytora
 .vscode/
-
-# Plik pomocniczy do sprawdzania obliczeń wartości i wektorów własnych
-/ev/
