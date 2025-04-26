@@ -38,66 +38,93 @@ void read_input(Input *i)
         {
             i->max_vertices = atoi(line);
         }
-        // Pominięcie linii dla interfejsu graficznego
-        else if(line_number == 2 || line_number == 3)
+        // Odczytanie indeksów wierszy
+        else if(line_number == 2)
         {
-            continue;
-        }
-        // Odczytanie grafu (krawędzi pomiędzy wierzchołkami i ich numerów)
-        else if(line_number == 4 || line_number == 5)
-        {
-            // Usunięcie znaku nowej linii
-            if(line[read - 1] == '\n')
-            {
-                line[read - 1] = '\0';
-            }
-
-            // Podzielenie linii na tokeny przy użyciu średnika jako separatora
-            char *token = strtok(line,";");
+            char *token = strtok(line, ";");
             while(token != NULL)
             {
                 int val = atoi(token);
-
-                // Odczytanie grup
-                if(line_number == 4)
+                int *tmp = realloc(i->row_indices, (i->r_count + 1) * sizeof(int));
+                if(tmp == NULL)
                 {
-                    int *tmp = realloc(i->vertices_groups, (i->g_count + 1) * sizeof(int));
-                    if(tmp == NULL)
-                    {
-                        fprintf(stderr, "Błąd alokacji pamięci (vertices_groups)\n");
-                        free(line);
-                        free(i->vertices_groups);
-                        free(i->vertices_ptrs);
-                        fclose(i->in);
-                        exit(EXIT_FAILURE);
-                    }
-                    i->vertices_groups = tmp;
-                    i->vertices_groups[i->g_count++] = val;
-                    token = strtok(NULL, ";");
-
-                    // Przypisz znaleziony większy numer indeksu wierzchołka
-                    if(val > i->v_count)
-                    {
-                        i->v_count = val;
-                    }
+                    fprintf(stderr, "Błąd alokacji pamięci (row_indices)\n");
+                    free(line);
+                    free(i->row_indices);
+                    fclose(i->in);
+                    exit(EXIT_FAILURE);
                 }
-                // Odczytanie wskaźników
-                else if(line_number == 5)
+                i->row_indices = tmp;
+                i->row_indices[i->r_count++] = val;
+                token = strtok(NULL, ";");
+            }
+        }
+        // Odczytanie pierwszych wierzchołków wierszy
+        else if(line_number == 3)
+        {
+            char *token = strtok(line, ";");
+            while(token != NULL)
+            {
+                int val = atoi(token);
+                int *tmp = realloc(i->first_vertices, (i->f_count + 1) * sizeof(int));
+                if(tmp == NULL)
                 {
-                    int *tmp = realloc(i->vertices_ptrs, (i->p_count + 1) * sizeof(int));
-                    if(tmp == NULL)
-                    {
-                        fprintf(stderr, "Błąd alokacji pamięci (vertices_groups)\n");
-                        free(line);
-                        free(i->vertices_groups);
-                        free(i->vertices_ptrs);
-                        fclose(i->in);
-                        exit(EXIT_FAILURE);
-                    }
-                    i->vertices_ptrs = tmp;
-                    i->vertices_ptrs[i->p_count++] = val;
-                    token = strtok(NULL, ";");
+                    fprintf(stderr, "Błąd alokacji pamięci (first_vertices)\n");
+                    free(line);
+                    free(i->first_vertices);
+                    fclose(i->in);
+                    exit(EXIT_FAILURE);
                 }
+                i->first_vertices = tmp;
+                i->first_vertices[i->f_count++] = val;
+                token = strtok(NULL, ";");
+            }
+        }
+        // Odczytanie grup
+        else if(line_number == 4)
+        {
+            char *token = strtok(line, ";");
+            while(token != NULL)
+            {
+                int val = atoi(token);
+                int *tmp = realloc(i->vertices_groups, (i->g_count + 1) * sizeof(int));
+                if(tmp == NULL)
+                {
+                    fprintf(stderr, "Błąd alokacji pamięci (vertices_groups)\n");
+                    free(line);
+                    free(i->vertices_groups);
+                    fclose(i->in);
+                    exit(EXIT_FAILURE);
+                }
+                i->vertices_groups = tmp;
+                i->vertices_groups[i->g_count++] = val;
+
+                if(val > i->v_count)
+                {
+                    i->v_count = val;
+                }
+                token = strtok(NULL, ";");
+            }
+        }
+        // Odczytanie wskaźników
+        else if(line_number == 5)
+        {
+            char *token = strtok(line, ";");
+            while(token != NULL)
+            {
+                int val = atoi(token);
+                int *tmp = realloc(i->vertices_ptrs, (i->p_count + 1) * sizeof(int));
+                if(tmp == NULL)
+                {
+                    fprintf(stderr, "Błąd alokacji pamięci (vertices_ptrs)\n");
+                    free(line);
+                    free(i->vertices_ptrs);
+                    fclose(i->in);
+                    exit(EXIT_FAILURE);
+                }
+                i->vertices_ptrs = tmp;
+                i->vertices_ptrs[i->p_count++] = val;
+                token = strtok(NULL, ";");
             }
         }
     }
@@ -125,6 +152,10 @@ void print_input(Input *i)
 {
     // Wyświetlenie wczytanych danych
     printf("\n\tLimit wierzchołków w wierszu: %d\n", i->max_vertices);
+    printf("\n\tIndeksy wierszy:\n");
+    printv(i->row_indices, i->r_count, 10);
+    printf("\n\tPierwsze wierzchołki w wierszach:\n");
+    printv(i->first_vertices, i->f_count, 10);
     printf("\n\tGrupy połączeń:\n");
     printv(i->vertices_groups, i->g_count, 10);
     printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");

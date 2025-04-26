@@ -8,6 +8,10 @@ typedef struct
 {
     FILE *in;
     int max_vertices;
+    int *row_indices;
+    size_t r_count;
+    int *first_vertices;
+    size_t f_count;
     int *vertices_groups;
     size_t g_count;
     int *vertices_ptrs;
