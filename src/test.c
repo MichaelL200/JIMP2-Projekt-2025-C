@@ -79,6 +79,15 @@ void test3()
 
     LanczosEigenV l;
     int n = 5;
+    // Macierz sąsiedztwa grafu
+    int A[25] =
+    {
+        0, 1, 1, 0, 0,
+        1, 0, 1, 1, 0,
+        1, 1, 0, 0, 1,
+        0, 1, 0, 0, 1,
+        0, 0, 1, 1, 0
+    };
     // Macierz Laplace'a grafu
     int L[25] =
     {
@@ -208,7 +217,22 @@ void test3()
     compute_approximate_eigenvectors(&l);
 
     // Podział grafu na 2 części
-    clusterization(l.X, l.n, 2, l.m, 10);
+    clusterization(l.X, l.n, 2, l.m, 10, A);
+
+    // Wypisanie nowej macierzy sąsiedztwa A
+    printf("\tNowa macierz sąsiedztwa A:\n");
+    for (int i = 0; i < n; i++)
+    {
+        printf("\t\t");
+        for (int j = 0; j < n; j++)
+        {
+            printf("%2d ", A[i * n + j]);
+        }
+        if(i != n - 1)
+        {
+            printf("\n");
+        }
+    }
     
     free(l.V);
 }

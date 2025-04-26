@@ -423,16 +423,19 @@ void qr_algorithm(LanczosEigenV *l)
     }
 
     // Wypisanie wektorów własnych
-    printf("\tWektory własne macierzy T:\n");
-    for (int i = 0; i < l->m; ++i)
+    if (l->m < 20)
     {
-        printf("\t\tY[%d] = [", i);
-        for (int j = 0; j < l->m; ++j)
+        printf("\tWektory własne macierzy T:\n");
+        for (int i = 0; i < l->m; ++i)
         {
-            printf("%f", l->Y[i * l->m + j]);
-            if (j < l->m - 1) printf(", ");
+            printf("\t\tY[%d] = [", i);
+            for (int j = 0; j < l->m; ++j)
+            {
+                printf("%f", l->Y[i * l->m + j]);
+                if (j < l->m - 1) printf(", ");
+            }
+            printf("]\n");
         }
-        printf("]\n");
     }
 
     free(T);
@@ -608,18 +611,21 @@ void compute_approximate_eigenvectors(LanczosEigenV *l)
     }
 
     // Wypisanie przybliżonych wektorów własnych L
-    printf("\tPrzybliżone wektory własne L:\n");
-    for (int i = 0; i < m; ++i)
+    if (n <= 20)
     {
-        printf("\t\tX[%d] = [", i);
-        for (int j = 0; j < n; ++j)
+        printf("\tPrzybliżone wektory własne L:\n");
+        for (int i = 0; i < m; ++i)
         {
-            printf("%f", l->X[j * m + i]);
-            if (j < n - 1)
+            printf("\t\tX[%d] = [", i);
+            for (int j = 0; j < n; ++j)
             {
-                printf(", ");
+                printf("%f", l->X[j * m + i]);
+                if (j < n - 1)
+                {
+                    printf(", ");
+                }
             }
+            printf("]\n");
         }
-        printf("]\n");
     }
 }

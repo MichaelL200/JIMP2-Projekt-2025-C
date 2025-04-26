@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     lanczos(&lev, L);
     qr_algorithm(&lev);
     compute_approximate_eigenvectors(&lev);
+    clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
     */
 
     // Zwolnienie pamięci
