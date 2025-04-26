@@ -8,6 +8,7 @@
 #include "input.h"
 #include "mat_vec.h"
 #include "eigenvectors.h"
+#include "test.h"
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
     int *L = calc_laplacian(A, D, input.v_count);
     free(D);
 
-    // Testy funkcji z modułu eigenvectors
+    // Testy poprawności algorytmu
     test1();
     test2();
     test3();

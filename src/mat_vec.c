@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <math.h>
 
 #include "mat_vec.h"
+#include "eigenvectors.h"
 #include "input.h"
 
 // Wyświetlenie wektora
@@ -143,4 +145,81 @@ int* calc_laplacian(int* A, int* D, int n)
     }
 
     return L;
+}
+
+// Funkcja obliczająca iloczyn skalarny dwóch wektorów o długości n
+double dot_product(double *v1, double *v2, int n)
+{
+    if(n < 1)
+    {
+        fprintf(stderr, "n jest mniejsze niż 1!");
+        exit(EXIT_FAILURE);
+    }
+
+    double sum = 0.0;
+    for (int i = 0; i < n; i++)
+    {
+        sum += v1[i] * v2[i];
+    }
+    return sum;
+}
+
+// Funkcja obliczająca normę euklidesową wektora o długości n
+double norm(double *v, int n)
+{
+    return sqrt(dot_product(v, v, n));
+}
+
+// Funkcja mnożąca macierz M (n x n, przechowywana w porządku wierszowym) przez wektor v
+// Wynik zapisywany jest w tablicy result
+void mat_vec_multiply_d(double* M, double* v, double* result, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        result[i] = 0.0;
+        for (int j = 0; j < n; j++)
+        {
+            result[i] += M[i * n + j] * v[j];
+        }
+    }
+}
+void mat_vec_multiply_i(int* M, double* v, double* result, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        result[i] = 0.0;
+        for (int j = 0; j < n; j++)
+        {
+            result[i] += (double)M[i * n + j] * v[j];
+        }
+    }
+}
+
+// Funkcja ortogonalizująca wektor w stosunku do poprzednich wektorów
+void orthogonalize(double *v, double *V, int n, int j)
+{
+    for(int k = 0; k < j; ++k)
+    {
+        double *vk = V + k * n;
+        double proj = dot_product(v, vk, n);
+        for(int i = 0; i < n; ++i)
+        {
+            v[i] -= proj * vk[i];
+        }
+    }
+}
+
+// Funkcja normalizująca wektor
+int normalize(double *v, int n)
+{
+    double v_norm = norm(v, n);
+    if(v_norm < LANCZOS_TOL)
+    {
+        return -1; // Norma zbyt mała
+    }
+    for(int i = 0; i < n; ++i)
+    {
+        v[i] /= v_norm;
+    }
+    return 0;
 }

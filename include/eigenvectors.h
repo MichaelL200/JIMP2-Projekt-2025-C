@@ -25,27 +25,11 @@ typedef struct
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
 
-// Funkcja obliczająca iloczyn skalarny dwóch wektorów o długości n
-double dot_product(double *v1, double *v2, int n);
-
-// Funkcja obliczająca normę euklidesową wektora o długości n
-double norm(double *v, int n);
-
-// Funkcja mnożąca macierz M (n x n, przechowywana w porządku wierszowym) przez wektor v. Wynik zapisywany w tablicy result
-void mat_vec_multiply_d(double* M, double* v, double* result, int n);
-void mat_vec_multiply_i(int* M, double* v, double* result, int n);
-
-// Funkcja testująca funkcje: dot_product, norm i mat_vec_multiply
-void test1();
-
-// Funkcja ortogonalizująca wektor w stosunku do poprzednich wektorów
-void orthogonalize(double *v, double *V, int n, int j);
-
-// Funkcja normalizująca wektor
-int normalize(double *v, int n);
-
-// Funkcja testująca funkcje orthogonalize i normalize
-void test2();
+// Tolerancje
+#define NORM_TOL 1e-10
+#define LANCZOS_TOL 1e-12
+#define MAX_ITER 1000
+#define TOLERANCE 1e-10
 
 // Inicjalizacja wartości obiektu struktury
 void lanczos_init(LanczosEigenV *l, int n, int m);
@@ -78,8 +62,5 @@ void compute_eigenvectors(LanczosEigenV *l);
 
 // Obliczenie X = V * Y
 void compute_approximate_eigenvectors(LanczosEigenV *l);
-
-// Funkcja testująca funkcje metody Lanczosa i algotytm QR
-void test3();
 
 #endif // EIGENVECTORS_H
