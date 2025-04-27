@@ -37,16 +37,16 @@ Config parse_args(int argc, char **argv)
     {
         switch (opt)
         {
-            // Parts
+            // Liczba części
             case 'p':
                 c.parts = atoi(optarg);
-                if (c.parts < 1)
+                if (c.parts < 2)
                 {
-                    fprintf(stderr, "Liczba części musi być większa od 0\n");
+                    fprintf(stderr, "Liczba części musi być większa od 2\n");
                     c.parts = 2;
                 }
                 break;
-            // Margin
+            // Margines
             case 'm':
                 c.margin = atoi(optarg);
                 if (c.margin < 0)
@@ -55,7 +55,7 @@ Config parse_args(int argc, char **argv)
                     c.margin = 10;
                 }
                 break;
-            // Output
+            // Plik wyjściowy
             case 'o':
                 if (is_valid_filename(optarg))
                 {
@@ -63,7 +63,7 @@ Config parse_args(int argc, char **argv)
                 }
                 else
                 {
-                    fprintf(stderr, "Nazwa pliku wyjściowego zawiera niedozwolone znaki. Ustawiono domyślną nazwę: output.txt / output.bin (w zależności od formatu)\n");
+                    fprintf(stderr, "Nazwa pliku wyjściowego zawiera niedozwolone znaki. Ustawiono domyślną nazwę: output.txt\n");
                     c.output_file = "output.txt";
                 }
                 break;
@@ -83,21 +83,25 @@ Config parse_args(int argc, char **argv)
         }
     }
 
-    // Sprawdzenie rozszerzenia output_file i poprawienie go jeśli trzeba
+    // Sprawdzenie rozszerzenia pliku wyjściowego i poprawienie go, jeśli jest nieprawidłowe
     if (c.output_file != NULL)
     {
-        const char *dot = strrchr(c.output_file, '.');
+        const char *dot = strrchr(c.output_file, '.'); // Znajdź ostatnią kropkę w nazwie pliku
         if (dot == NULL || strcmp(dot + 1, c.format) != 0)
         {
-            // Nowe miejsce na nazwę z nowym rozszerzeniem
+            // Nowe miejsce na nazwę z poprawnym rozszerzeniem
             size_t base_len = dot ? (size_t)(dot - c.output_file) : strlen(c.output_file);
             size_t ext_len = strlen(c.format);
-            char *new_output = malloc(base_len + ext_len + 2); // +1 na '.' +1 na '\\0'
+            char *new_output = malloc(base_len + ext_len + 2); // +1 na '.' +1 na '\0'
             if (!new_output)
             {
                 perror("malloc");
                 exit(EXIT_FAILURE);
             }
+            strncpy(new_output, c.output_file, base_len); // Skopiuj nazwę pliku bez rozszerzenia
+            new_output[base_len] = '.';                  // Dodaj kropkę
+            strcpy(new_output + base_len + 1, c.format); // Dodaj nowe rozszerzenie
+            c.output_file = new_output;                 // Zaktualizuj nazwę pliku wyjściowego
         }
     }
 

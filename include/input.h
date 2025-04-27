@@ -30,7 +30,7 @@ void open_init_input(Input *i, const char *file);
 void read_input(Input *i);
 
 // Sprawdzenie, czy dane wsadowe są poprawne dla tego grafu
-void check_input_data(int parts, int count);
+void check_input_data(int parts, int count, int *margin);
 
 // Wypisanie informacji wczytanych z pliku wejściowego
 void print_input(Input *i);

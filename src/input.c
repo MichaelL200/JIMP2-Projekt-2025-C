@@ -136,13 +136,30 @@ void read_input(Input *i)
 }
 
 // Sprawdzenie, czy dane wsadowe są poprawne dla tego grafu
-void check_input_data(int parts, int count)
+void check_input_data(int parts, int count, int *margin)
 {
     // Sprawdzenie, czy liczba podziałów nie jest zbyt duża w porównaniu do liczby wierzchołków
     if (2 * parts > count)
     {
         fprintf(stderr, "Błąd: Podwojona liczba podziałów (2 * %d = %d) jest większa niż liczba wierzchołków (%d). Metoda spektralna nieoptymalna.\n", parts, 2 * parts, count);
         exit(EXIT_FAILURE);
+    }
+
+    // Obliczenie minimalnego marginesu
+    int min_margin = count / parts - (count + parts - 1) / parts;
+
+    // Zwiększenie minimalnego marginesu o 10% lub o stałą wartość
+    int adjusted_margin = min_margin + (min_margin / 10); // Dodaj 10% minimalnego marginesu
+    if (adjusted_margin == min_margin) {
+        adjusted_margin += 10; // Jeśli 10% to 0, zwiększ margines o 10
+    }
+
+    // Sprawdzenie, czy margines jest wystarczająco duży
+    if (*margin < adjusted_margin)
+    {
+        fprintf(stderr, "Błąd: Margines (%d) jest zbyt mały. Minimalny margines dla %d części i %d wierzchołków wynosi %d.\n", *margin, parts, count, adjusted_margin);
+        *margin = adjusted_margin; // Ustaw margines na zwiększony minimalny
+        fprintf(stderr, "Ustawiono margines na minimalny powiększony: %d.\n", *margin);
     }
 }
 

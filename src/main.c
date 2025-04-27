@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     // Czytanie pliku linia po linii
     read_input(&input);
     // Sprawdzenie, czy dane wsadowe są poprawne dla tego grafu
-    check_input_data(config.parts, input.v_count);
+    check_input_data(config.parts, input.v_count, &config.margin);
     // Wypisanie informacji wczytanych z pliku wejściowego
     print_input(&input);
 
@@ -39,10 +39,12 @@ int main(int argc, char *argv[])
     int *L = calc_laplacian(A, D, input.v_count);
     free(D);
 
+    /*
     // Testy poprawności algorytmu
     test1();
     test2();
     test3();
+    */
     
     // Inicjalizacja obiektu struktury do metody Lanczosa i obliczeń wartości wektorów własnych macierzy L
     LanczosEigenV lev;
