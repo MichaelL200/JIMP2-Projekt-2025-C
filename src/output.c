@@ -131,10 +131,12 @@ void write_output(char *output_file, Result *r, Input *i, int *A, int n, char *f
         // Wypisanie maksymalnej liczby wierzchołków w wierszu (1)
         fwrite(&i->max_vertices, sizeof(int), 1, out);
 
-        // Wypisanie indeksów wierszy (2)
+        // Wypisanie długości i zawartości tablicy `row_indices` (2)
+        fwrite(&i->r_count, sizeof(int), 1, out); // Zapisz długość tablicy
         fwrite(i->row_indices, sizeof(int), i->r_count, out);
 
-        // Wypisanie pierwszych wierzchołków w wierszach (3)
+        // Wypisanie długości i zawartości tablicy `first_vertices` (3)
+        fwrite(&i->f_count, sizeof(int), 1, out); // Zapisz długość tablicy
         fwrite(i->first_vertices, sizeof(int), i->f_count, out);
 
         // Zapisanie grup wierzchołków z A (4) i ich przypisania na podstawie wskaźników (5)
