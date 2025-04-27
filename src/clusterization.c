@@ -23,8 +23,9 @@ double euclidean_distance(const double *a, const double *b, int n)
 }
 
 // Algorytm klasteryzacji centroidów (k-means) z minimalizacją liczby przecięć i modyfikacją macierzy sąsiedztwa
-Result clusterization(double *X, int v_count, int parts, int dimensions, double margin_percentage, int *A)
+Result *clusterization(double *X, int v_count, int parts, int dimensions, double margin_percentage, int *A)
 {
+    // Sprawdzenie poprawności danych wejściowych
     if (parts <= 0 || v_count <= 0 || X == NULL || A == NULL || parts > v_count || margin_percentage < 0.0 || margin_percentage > 100.0)
     {
         fprintf(stderr, "Błąd: Niepoprawne dane wejściowe do klasteryzacji.\n");
@@ -36,7 +37,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
 
     for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++)
     {
-        // Alokacja pamięci
+        // Alokacja pamięci dla centroidów
         double *centroids = malloc(parts * dimensions * sizeof(double));
         if (!centroids)
         {
@@ -44,6 +45,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
             exit(EXIT_FAILURE);
         }
 
+        // Alokacja pamięci dla etykiet
         int *labels = malloc(v_count * sizeof(int));
         if (!labels)
         {
@@ -53,7 +55,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
         }
         for (int i = 0; i < v_count; i++)
         {
-            labels[i] = -1; // Initialize labels to -1
+            labels[i] = -1; // Inicjalizacja etykiet na -1
         }
 
         // Inicjalizacja centroidów na podstawie analizy głównych składowych (PCA)
@@ -65,7 +67,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
             }
         }
 
-        // Oblicz średnią dla każdego wymiaru
+        // Obliczanie średniej dla każdego wymiaru
         double *mean = calloc(dimensions, sizeof(double));
         if (!mean)
         {
@@ -98,7 +100,6 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
         free(mean);
 
         // Algorytm k-means z uwzględnieniem ograniczeń
-
         int iterations = 0;
         int changed;
         int base_vertices_per_cluster = v_count / parts;
@@ -119,6 +120,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
         {
             changed = 0;
 
+            // Alokacja pamięci dla rozmiarów klastrów
             int *cluster_sizes = calloc(parts, sizeof(int));
             if (!cluster_sizes)
             {
@@ -128,6 +130,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
                 exit(EXIT_FAILURE);
             }
 
+            // Przypisanie wierzchołków do klastrów
             for (int i = 0; i < v_count; i++)
             {
                 double min_distance = DBL_MAX;
@@ -158,6 +161,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
                 }
             }
 
+            // Aktualizacja centroidów
             for (int i = 0; i < parts; i++)
             {
                 int count = 0;
@@ -194,7 +198,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
             fprintf(stderr, "Ostrzeżenie: Przekroczono maksymalną liczbę iteracji!\n");
         }
 
-        // Modyfikacja macierzy sąsiedztwa A
+        // Obliczenie liczby przecięć
         int intersection_count = 0;
         for (int i = 0; i < v_count; i++)
         {
@@ -232,15 +236,15 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
         free(centroids);
     }
 
-    printf("\tEtykiety klastrów:\n");
-    for (int i = 0; i < v_count; i++)
+    // Alokacja pamięci dla wyniku
+    Result *r = malloc(sizeof(Result));
+    if (!r)
     {
-        printf("\t\tWierzchołek %d: Klaster %d\n", i, best_labels[i]);
+        fprintf(stderr, "Błąd: Nie można przydzielić pamięci dla wyniku klasteryzacji.\n");
+        exit(EXIT_FAILURE);
     }
 
-    // Alokacja pamięci dla wyniku
-    Result r;
-    r.cut_count = min_intersection_count;
+    r->cut_count = min_intersection_count;
     int max_cluster_size = 0;
     int min_cluster_size = INT_MAX;
 
@@ -248,7 +252,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
     int *cluster_sizes = calloc(parts, sizeof(int));
     if (!cluster_sizes)
     {
-        fprintf(stderr, "Błąd: Nie można przydzielić pamięci dla rozmiarów klastrów.\n");
+        fprintf(stderr, "Błąd: Nie można przydzielić pamięci dla rozmiarów części.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -273,22 +277,24 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
 
     // Obliczenie zachowanego marginesu
     int actual_margin = max_cluster_size - min_cluster_size;
-    r.margin_kept = (int)((double)actual_margin / v_count * 100.0);
-    if (r.margin_kept <= margin_percentage)
+    r->margin_kept = (int)((double)actual_margin / v_count * 100.0);
+    if (r->margin_kept <= margin_percentage)
     {
-        r.res = 'S';
+        r->res = 'S';
     }
     else
     {
-        r.res = 'F';
+        free(best_labels);
+        free(r);
+        return NULL; // Zwróć NULL, jeśli margines nie został zachowany
     }
-    r.parts = parts;
+    r->parts = parts;
 
     free(best_labels);
-    return r;
+    return r; // Zwróć wskaźnik na wynik
 }
 
-// Wypisanie wyniku klasteryzacji
+// Funkcja do wypisania wyniku klasteryzacji
 void print_result(Result *r)
 {
     printf("\tWynik klasteryzacji:\n");

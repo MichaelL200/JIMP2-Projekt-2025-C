@@ -141,7 +141,7 @@ void check_input_data(int parts, int count, int *margin)
     // Sprawdzenie, czy liczba podziałów nie jest zbyt duża w porównaniu do liczby wierzchołków
     if (2 * parts > count)
     {
-        fprintf(stderr, "Błąd: Podwojona liczba podziałów (2 * %d = %d) jest większa niż liczba wierzchołków (%d). Metoda spektralna nieoptymalna.\n", parts, 2 * parts, count);
+        fprintf(stderr, "Błąd: Podwojona liczba podziałów (2 * %d > %d) jest większa niż liczba wierzchołków (%d). Metoda spektralna nieoptymalna.\n", parts, 2 * parts, count);
         exit(EXIT_FAILURE);
     }
 

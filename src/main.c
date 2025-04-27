@@ -12,6 +12,8 @@
 #include "clusterization.h"
 #include "output.h"
 
+#define MAX_ATTEMPTS 100 // Maksymalna liczba prób
+
 int main(int argc, char *argv[])
 {
     // Parsowanie argumentów
@@ -46,30 +48,58 @@ int main(int argc, char *argv[])
     test3();
     */
     
-    // Inicjalizacja obiektu struktury do metody Lanczosa i obliczeń wartości wektorów własnych macierzy L
-    LanczosEigenV lev;
-    lanczos_init(&lev, input.v_count, input.v_count);
-    // Losowanie dowolnego wektora v₁
-    lanczos_v1_init(&lev);
-    // Inicjalizacyjny krok iteracyjny metody Lanczosa
-    lanczos_initial_step(&lev, L);
-    // Inicjalizacja generatora liczb losowych
-    srand((unsigned int)time(NULL));
-    // Iteracje metody Lanczosa dla j = 2, ..., m
-    lanczos(&lev, L);
-    // Algorytm QR - obliczanie wartości i wektorów własnych T
-    qr_algorithm(&lev);
-    // Obliczenie przybliżonych wektorów własnych L
-    compute_approximate_eigenvectors(&lev);
-    
-    // Podział grafu na części
-    Result res = clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
-    lanczos_free(&lev);
-    // Wypisanie wyników klasteryzacji
-    print_result(&res);
+    int attempts = 0; // Licznik liczby prób
 
-    // Wypisanie podzielnego grafu do pliku wyjściowego
-    write_output(config.output_file, &res, &input, A, input.v_count, config.format);
+    Result *res = NULL;
+
+    do
+    {
+        attempts++; // Zwiększenie licznika prób
+
+        // Inicjalizacja struktury LanczosEigenV
+        LanczosEigenV lev;
+        lanczos_init(&lev, input.v_count, input.v_count);
+        lanczos_v1_init(&lev);
+        lanczos_initial_step(&lev, L);
+        srand((unsigned int)time(NULL));
+        lanczos(&lev, L);
+        qr_algorithm(&lev);
+        compute_approximate_eigenvectors(&lev);
+
+        // Próba klasteryzacji
+        res = clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
+
+        // Zwolnienie struktury LanczosEigenV
+        lanczos_free(&lev);
+
+        // Sprawdzenie, czy przekroczono maksymalną liczbę prób
+        if (attempts >= MAX_ATTEMPTS && res == NULL)
+        {
+            fprintf(stderr, "Ostrzeżenie: Przekroczono maksymalną liczbę prób (%d). Akceptowanie wyniku z niespełnionym marginesem.\n", MAX_ATTEMPTS);
+            break;
+        }
+
+    } while (res == NULL); // Powtórz, jeśli wynik klasteryzacji to NULL
+
+    // Sprawdzenie, czy wynik klasteryzacji jest poprawny
+    if (res != NULL)
+    {
+        // Wypisanie wyników klasteryzacji
+        print_result(res);
+
+        // Zapisanie wyników do pliku
+        write_output(config.output_file, res, &input, A, input.v_count, config.format);
+
+        // Zwolnienie pamięci dla wyniku klasteryzacji
+        free(res);
+    }
+    else
+    {
+        fprintf(stderr, "Błąd: Wynik klasteryzacji jest NULL. Program zakończył działanie z niespełnionym marginesem.\n");
+    }
+
+    // Wypisanie liczby prób
+    printf("Liczba prób podziału: %d\n", attempts);
 
     // Zwolnienie pamięci
     free_input(&input);

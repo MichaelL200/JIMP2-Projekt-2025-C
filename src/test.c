@@ -213,11 +213,18 @@ void test3()
     compute_approximate_eigenvectors(&l);
 
     // Podział grafu na 2 części
-    Result r = clusterization(l.X, l.n, 2, l.m, 10, A);
+    Result *r = clusterization(l.X, l.n, 2, l.m, 10, A);
     lanczos_free(&l);
 
+    // Sprawdzenie, czy klasteryzacja się powiodła
+    if (r == NULL)
+    {
+        fprintf(stderr, "Błąd: Klasteryzacja nie powiodła się.\n");
+        return;
+    }
+
     // Wypisanie wyników klasteryzacji
-    print_result(&r);
+    print_result(r);
 
     // Wypisanie nowej macierzy sąsiedztwa A
     printf("\tNowa macierz sąsiedztwa A:\n");
@@ -228,10 +235,13 @@ void test3()
         {
             printf("%2d ", A[i * n + j]);
         }
-        if(i != n - 1)
+        if (i != n - 1)
         {
             printf("\n");
         }
     }
     printf("\n");
+
+    // Zwolnienie pamięci dla wyniku klasteryzacji
+    free(r);
 }
