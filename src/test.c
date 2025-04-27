@@ -218,7 +218,10 @@ void test3()
     compute_approximate_eigenvectors(&l);
 
     // Podział grafu na 2 części
-    clusterization(l.X, l.n, 2, l.m, 10, A);
+    Result r = clusterization(l.X, l.n, 2, l.m, 10, A);
+
+    // Wypisanie wyników klasteryzacji
+    print_result(&r);
 
     // Wypisanie nowej macierzy sąsiedztwa A
     printf("\tNowa macierz sąsiedztwa A:\n");

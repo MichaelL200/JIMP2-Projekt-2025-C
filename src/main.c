@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     test2();
     test3();
     
-    
     // Inicjalizacja obiektu struktury do metody Lanczosa i obliczeń wartości wektorów własnych macierzy L
     LanczosEigenV lev;
     lanczos_init(&lev, input.v_count, input.v_count);
@@ -62,10 +61,12 @@ int main(int argc, char *argv[])
     compute_approximate_eigenvectors(&lev);
     
     // Podział grafu na części
-    clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
+    Result res = clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
+    // Wypisanie wyników klasteryzacji
+    print_result(&res);
 
     // Wypisanie podzielnego grafu do pliku wyjściowego
-    write_output(config.output_file, &input, A, input.v_count);
+    write_output(config.output_file, &res, &input, A, input.v_count);
 
     // Zwolnienie pamięci
     free(input.vertices_ptrs);

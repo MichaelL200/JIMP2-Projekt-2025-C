@@ -7,7 +7,7 @@
 #include "input.h"
 
 // Wypisywanie grafu do pliku
-void write_output(char *output_file, Input *i, int *A, int n)
+void write_output(char *output_file, Result *r, Input *i, int *A, int n)
 {
     // Tworzenie folderu output, jeśli nie istnieje
     if (mkdir("output", 0777) == -1 && errno != EEXIST)
@@ -27,6 +27,12 @@ void write_output(char *output_file, Input *i, int *A, int n)
         perror("Error opening output file");
         exit(EXIT_FAILURE);
     }
+
+    // Wypisanie wyniku działania programu do pliku (0)
+    fprintf(out, "%c ", r->res);
+    fprintf(out, "%d ", r->parts);
+    fprintf(out, "%d ", r->cut_count);
+    fprintf(out, "%d\n", r->margin_kept);
 
     // Wypisanie maksymalnej liczby wierzchołków w wierszu (1)
     fprintf(out, "%d\n", i->max_vertices);

@@ -28,7 +28,7 @@ typedef struct
 // Tolerancje
 #define NORM_TOL 1e-10
 #define LANCZOS_TOL 1e-12
-#define MAX_ITER 250
+#define MAX_ITER 5
 #define TOLERANCE 1e-10
 
 // Inicjalizacja wartości obiektu struktury

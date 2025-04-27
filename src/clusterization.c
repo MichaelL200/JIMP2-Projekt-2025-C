@@ -5,6 +5,7 @@
 #include <limits.h>
 
 #include "clusterization.h"
+#include "output.h"
 
 #define MAX_ITERATIONS 100
 #define MAX_ATTEMPTS 20
@@ -22,7 +23,7 @@ double euclidean_distance(const double *a, const double *b, int n)
 }
 
 // Algorytm klasteryzacji centroidów (k-means) z minimalizacją liczby przecięć i modyfikacją macierzy sąsiedztwa
-int *clusterization(double *X, int v_count, int parts, int dimensions, double margin_percentage, int *A)
+Result clusterization(double *X, int v_count, int parts, int dimensions, double margin_percentage, int *A)
 {
     if (parts <= 0 || v_count <= 0 || X == NULL || A == NULL || parts > v_count || margin_percentage < 0.0 || margin_percentage > 100.0)
     {
@@ -97,6 +98,7 @@ int *clusterization(double *X, int v_count, int parts, int dimensions, double ma
         free(mean);
 
         // Algorytm k-means z uwzględnieniem ograniczeń
+
         int iterations = 0;
         int changed;
         int base_vertices_per_cluster = v_count / parts;
@@ -147,7 +149,9 @@ int *clusterization(double *X, int v_count, int parts, int dimensions, double ma
                 if (labels[i] != best_cluster)
                 {
                     if (labels[i] != -1)
+                    {
                         cluster_sizes[labels[i]]--;
+                    }
                     labels[i] = best_cluster;
                     cluster_sizes[best_cluster]++;
                     changed = 1;
@@ -165,7 +169,9 @@ int *clusterization(double *X, int v_count, int parts, int dimensions, double ma
                     if (labels[j] == i)
                     {
                         for (int k = 0; k < dimensions; k++)
+                        {
                             centroids[i * dimensions + k] += X[j * dimensions + k];
+                        }
                         count++;
                     }
                 }
@@ -173,7 +179,9 @@ int *clusterization(double *X, int v_count, int parts, int dimensions, double ma
                 if (count > 0)
                 {
                     for (int j = 0; j < dimensions; j++)
+                    {
                         centroids[i * dimensions + j] /= count;
+                    }
                 }
             }
 
@@ -224,12 +232,66 @@ int *clusterization(double *X, int v_count, int parts, int dimensions, double ma
         free(centroids);
     }
 
-    printf("\tNajlepsza liczba przecięć: %d\n", min_intersection_count);
     printf("\tEtykiety klastrów:\n");
     for (int i = 0; i < v_count; i++)
     {
         printf("\t\tWierzchołek %d: Klaster %d\n", i, best_labels[i]);
     }
 
-    return best_labels;
+    // Alokacja pamięci dla wyniku
+    Result r;
+    r.cut_count = min_intersection_count;
+    int max_cluster_size = 0;
+    int min_cluster_size = INT_MAX;
+
+    // Obliczenie rozmiarów klastrów
+    int *cluster_sizes = calloc(parts, sizeof(int));
+    if (!cluster_sizes)
+    {
+        fprintf(stderr, "Błąd: Nie można przydzielić pamięci dla rozmiarów klastrów.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < v_count; i++)
+    {
+        cluster_sizes[best_labels[i]]++;
+    }
+
+    for (int i = 0; i < parts; i++)
+    {
+        if (cluster_sizes[i] > max_cluster_size)
+        {
+            max_cluster_size = cluster_sizes[i];
+        }
+        if (cluster_sizes[i] < min_cluster_size)
+        {
+            min_cluster_size = cluster_sizes[i];
+        }
+    }
+
+    free(cluster_sizes);
+
+    // Obliczenie zachowanego marginesu
+    int actual_margin = max_cluster_size - min_cluster_size;
+    r.margin_kept = (int)((double)actual_margin / v_count * 100.0);
+    if (r.margin_kept <= margin_percentage)
+    {
+        r.res = 'S';
+    }
+    else
+    {
+        r.res = 'F';
+    }
+    r.parts = parts;
+
+    return r;
+}
+
+// Wypisanie wyniku klasteryzacji
+void print_result(Result *r)
+{
+    printf("\tWynik klasteryzacji:\n");
+    printf("\t\tLiczba przecięć: %d\n", r->cut_count);
+    printf("\t\tZachowany margines: %d\n", r->margin_kept);
+    printf("\t\tWynik: %c\n", r->res);
 }
