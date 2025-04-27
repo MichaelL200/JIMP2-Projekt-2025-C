@@ -46,7 +46,7 @@ void read_input(Input *i)
             {
                 int val = atoi(token);
                 int *tmp = realloc(i->row_indices, (i->r_count + 1) * sizeof(int));
-                if(tmp == NULL)
+                if (tmp == NULL)
                 {
                     fprintf(stderr, "Błąd alokacji pamięci (row_indices)\n");
                     free(line);
@@ -88,11 +88,10 @@ void read_input(Input *i)
             {
                 int val = atoi(token);
                 int *tmp = realloc(i->vertices_groups, (i->g_count + 1) * sizeof(int));
-                if(tmp == NULL)
-                {
+                if (tmp == NULL) {
                     fprintf(stderr, "Błąd alokacji pamięci (vertices_groups)\n");
+                    free_input(i);
                     free(line);
-                    free(i->vertices_groups);
                     fclose(i->in);
                     exit(EXIT_FAILURE);
                 }
@@ -161,4 +160,13 @@ void print_input(Input *i)
     printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");
     printv(i->vertices_ptrs, i->p_count, 10);
     printf("\n\tLiczba wierzchołków: %d\n", ++(i->v_count));
+}
+
+// Funkcja zwalniająca pamięć dla struktury Input
+void free_input(Input *i)
+{
+    if (i->row_indices) free(i->row_indices);
+    if (i->first_vertices) free(i->first_vertices);
+    if (i->vertices_groups) free(i->vertices_groups);
+    if (i->vertices_ptrs) free(i->vertices_ptrs);
 }

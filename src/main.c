@@ -62,15 +62,15 @@ int main(int argc, char *argv[])
     
     // Podział grafu na części
     Result res = clusterization(lev.X, lev.n, config.parts, lev.m, config.margin, A);
+    lanczos_free(&lev);
     // Wypisanie wyników klasteryzacji
     print_result(&res);
 
     // Wypisanie podzielnego grafu do pliku wyjściowego
-    write_output(config.output_file, &res, &input, A, input.v_count);
+    write_output(config.output_file, &res, &input, A, input.v_count, config.format);
 
     // Zwolnienie pamięci
-    free(input.vertices_ptrs);
-    free(input.vertices_groups);
+    free_input(&input);
     free(A);
     free(L);
 

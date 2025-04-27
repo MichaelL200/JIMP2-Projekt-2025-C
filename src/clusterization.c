@@ -284,6 +284,7 @@ Result clusterization(double *X, int v_count, int parts, int dimensions, double 
     }
     r.parts = parts;
 
+    free(best_labels);
     return r;
 }
 

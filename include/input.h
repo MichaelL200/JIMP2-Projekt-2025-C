@@ -35,4 +35,7 @@ void check_input_data(int parts, int count);
 // Wypisanie informacji wczytanych z pliku wejściowego
 void print_input(Input *i);
 
+// Funkcja zwalniająca pamięć dla struktury Input
+void free_input(Input *i);
+
 #endif // INPUT_H

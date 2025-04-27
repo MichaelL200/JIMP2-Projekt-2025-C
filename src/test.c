@@ -209,16 +209,12 @@ void test3()
     // Algorytm QR - obliczanie wartości i wektorów własnych T
     qr_algorithm(&l);
 
-    /*
-    // Obliczenie wektorów własnych T
-    compute_eigenvectors(&l);
-    */
-
     // Obliczenie przybliżonych wektorów własnych L
     compute_approximate_eigenvectors(&l);
 
     // Podział grafu na 2 części
     Result r = clusterization(l.X, l.n, 2, l.m, 10, A);
+    lanczos_free(&l);
 
     // Wypisanie wyników klasteryzacji
     print_result(&r);
@@ -238,6 +234,4 @@ void test3()
         }
     }
     printf("\n");
-    
-    free(l.V);
 }
