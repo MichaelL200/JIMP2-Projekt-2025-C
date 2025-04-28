@@ -38,26 +38,38 @@ int getv(int *v, int a, int b, int n)
 // Wczytanie grafu do macierzy sąsiedztwa A
 int* get_adjacency_matrix(Input *i)
 {
-    printf("\n\tPołączenia dodane do macierzy sąsiedztwa:");
     int *A = calloc(i->v_count * i->v_count, sizeof(int));
     int p = 0;
     int v = 0;
+    if (i->v_count < 30)
+    {
+        printf("\n\tPołączenia dodane do macierzy sąsiedztwa:");
+    }
     for(int it = 0; it < (int)i->g_count; it++)
     {
         // Zaktualizuj wierzchołek
         if(p < (int)i->p_count && it == i->vertices_ptrs[p])
         {
             v = i->vertices_groups[it];
-            printf("\n\t%d - %d: ", it, v);
+            if (i->v_count < 30)
+            {
+                printf("\n\t%d - %d: ", it, v);
+            }
             p++;
         }
         else
         {
-            printf("\t%d", i->vertices_groups[it]);
+            if (i->v_count < 30)
+            {
+                printf("\t%d", i->vertices_groups[it]);
+            }
             add_edge(A, v, i->vertices_groups[it], i->v_count);
         }
     }
-    printf("\n");
+    if (i->v_count < 30)
+    {
+        printf("\n");
+    }
 
     // Test
     //printf("\]n\t%d\n", getv(A, 93, 90, v_count));
@@ -103,9 +115,14 @@ int* calc_degree_mat(int *A, int n)
     }
 
     // Wypisanie macierzy (wektora) stopni grafu D (tylko diagonale)
-    printf("\n");
-    printv(D, n, 30);
-    printf("\n");
+    
+    if(n < 30)
+    {
+        printf("\n");
+        printf("\tStopnie wierzchołków:\n");
+        printv(D, n, 30);
+        printf("\n");
+    }
 
     return D;
 }

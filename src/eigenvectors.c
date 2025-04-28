@@ -134,17 +134,20 @@ void lanczos_initial_step(LanczosEigenV *l, int* A)
     // Wypisanie wyników
     printf("\n\tInicjalizacyjny krok iteracyjny metody Lanczosa:\n");
     printf("\talpha1 = %f\n", alpha1);
-    printf("\tw1 = [");
-    for (int i = 0; i < l->n; i++)
+    if (l->n <= 20)
     {
-        if( !(i % 5) )
+        printf("\tw1 = [");
+        for (int i = 0; i < l->n; i++)
         {
-            printf("\n\t");
+            if (!(i % 5))
+            {
+                printf("\n\t");
+            }
+            printf("%f", w1[i]);
+            if (i < l->n - 1) printf(", ");
         }
-        printf("%f", w1[i]);
-        if (i < l->n - 1) printf(", ");
+        printf(" ]\n");
     }
-    printf(" ]\n");
 
     // Zapisz w1 do W
     for (int i = 0; i < l->n; i++)
@@ -391,10 +394,13 @@ void qr_algorithm(LanczosEigenV *l)
     }
 
     // Wypisanie wartości własnych
-    printf("\n\tWartości własne macierzy T:\n");
-    for (int i = 0; i < l->m; ++i)
+    if (l->m <= 20)
     {
-        printf("\t\ttheta[%d] = %f\n", i, l->theta[i]);
+        printf("\n\tWartości własne macierzy T:\n");
+        for (int i = 0; i < l->m; ++i)
+        {
+            printf("\t\ttheta[%d] = %f\n", i, l->theta[i]);
+        }
     }
     printf("\tLiczba iteracji: %d\n", iter);
     if (converged)

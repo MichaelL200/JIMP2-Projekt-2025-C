@@ -26,10 +26,10 @@ typedef struct
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
 
 // Tolerancje
-#define NORM_TOL 1e-10
-#define LANCZOS_TOL 1e-12
+#define NORM_TOL 1e-3
+#define LANCZOS_TOL 1e-3
 #define MAX_ITER 5
-#define TOLERANCE 1e-10
+#define TOLERANCE 1e-3
 
 // Inicjalizacja wartości obiektu struktury
 void lanczos_init(LanczosEigenV *l, int n, int m);

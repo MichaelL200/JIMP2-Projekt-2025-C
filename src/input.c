@@ -168,14 +168,20 @@ void print_input(Input *i)
 {
     // Wyświetlenie wczytanych danych
     printf("\n\tLimit wierzchołków w wierszu: %d\n", i->max_vertices);
-    printf("\n\tIndeksy wierszy:\n");
-    printv(i->row_indices, i->r_count, 10);
-    printf("\n\tPierwsze wierzchołki w wierszach:\n");
-    printv(i->first_vertices, i->f_count, 10);
-    printf("\n\tGrupy połączeń:\n");
-    printv(i->vertices_groups, i->g_count, 10);
-    printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");
-    printv(i->vertices_ptrs, i->p_count, 10);
+
+    if (i->v_count > 100) {
+        printf("\n\tGraf jest zbyt duży, aby wyświetlić szczegóły.\n");
+    } else {
+        printf("\n\tIndeksy wierszy:\n");
+        printv(i->row_indices, i->r_count, 10);
+        printf("\n\tPierwsze wierzchołki w wierszach:\n");
+        printv(i->first_vertices, i->f_count, 10);
+        printf("\n\tGrupy połączeń:\n");
+        printv(i->vertices_groups, i->g_count, 10);
+        printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");
+        printv(i->vertices_ptrs, i->p_count, 10);
+    }
+
     printf("\n\tLiczba wierzchołków: %d\n", ++(i->v_count));
 }
 
