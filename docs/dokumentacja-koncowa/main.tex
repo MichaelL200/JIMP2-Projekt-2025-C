@@ -8,22 +8,19 @@
 \usepackage{enumitem}
 \usepackage{dirtree}
 \usepackage[export]{adjustbox}
+\usepackage{amsmath}
 
 
 
-\title{\Huge JIMP2 Projekt 2025 \\ {\huge Dokumentacja implementacyjna - C}}
+\title{\Huge JIMP2 Projekt 2025 \\ {\huge Dokumentacja końcowa - C}}
 \author{Michał Ludwiczak \\ GR3}
-\date{8 kwietnia 2025}
+\date{29 kwietnia 2025}
 
 \begin{document}
 
 \maketitle
 
 \tableofcontents
-
-
-
-% Dokumentacja implementacyjna przedstawiająca szczegóły implementacyjne programu, specyfikacje wejścia oraz wyjścia, plików wyjściowych, etc.
 
 
 
@@ -46,7 +43,7 @@ Celem projektu jest stworzenie aplikacji w języku C, dokonującej podziału gra
 \section{Algorytm}
 
 Niestety znalezienie optymalnego podziału grafu należy do klasy problemów NP-trudnych. Dla grafu o \( n \) wierzchołkach istnieje aż \( 2^{n-1} - 1 \) możliwych sposobów na bisekcję (wyraźnego podziału na 2 grafy). \cite{youtube_video} Przy tego typu problemie nie możemy po prostu sprawdzić wszystkich możliwości i wybrać najlepszej z nich - jest to problem optymalizacji kombinatorycznej. W związku z tym opracowano wiele algorytmów zachłannych, metod przybliżonych i heurystyk, które pozwalają na uzyskanie satysfakcjonujących rozwiązań w praktyce.
-W naszym programie zdecydowaliśmy się użyć algorytmu spektralnego, który wykorzystuje własności spektralne macierzy Laplace'a grafu. Na podstawie spektrum grafu, które opisuje strukturę jego strukturę, graf możemy podzielić w efektywny i satysfakcjonujący sposób, minimalizując liczbę przeciętych krawędzi.
+W tym programie zdecydowałem się użyć algorytmu spektralnego, który wykorzystuje własności spektralne macierzy Laplace'a grafu. Na podstawie spektrum grafu, które opisuje strukturę jego strukturę, graf możemy podzielić w efektywny i satysfakcjonujący sposób, minimalizując liczbę przeciętych krawędzi.
 
 
 
@@ -91,7 +88,6 @@ W naszym programie zdecydowaliśmy się użyć algorytmu spektralnego, który wy
 
     Po otrzymaniu poszczególnych części z wierzchołkami modyfikuje się macierz sąsiedztwa \(A\) wstawiając 0 w pola oznaczające krawędzie pomiędzy wierzchołkami przynależącymi do różnych grup. W ten sposób otrzymuje się nową macierz sąsiedztwa, która zawiera już podzielony graf. Macierz sąsiedztwa jest już gotowa do przetworzenia i wypisania na plik wyjściowy.
     
-
 
 
 % Lista dostępnych flag sterujących programem, wraz z dokładnym opisem dopuszczalnych wartości argumentów tych flag
@@ -173,7 +169,6 @@ Program jest uruchamiany z linii poleceń i obsługuje następujące flagi:
     \end{itemize}
     
     
-    
     \subsection{Moduły}
 
     
@@ -181,20 +176,25 @@ Program jest uruchamiany z linii poleceń i obsługuje następujące flagi:
     \begin{itemize}
         \item \texttt{main.c — plik główny} \\
         Wywołanie modułów w odpowiedniej kolejności. \\
-        Parsowanie argumentów, wczytanie grafu z pliku wejściowego, utworzenie macierzy sąsiedzywa i macierzy Laplace'a, obliczenie wektorów własnych, klasteryzacja i podział grafu, wypisanie wyniku do pliku wyjściowego.
-        Parsowanie argumentów, Wczytanie grafu, Przeprowadzenie podziału, Zapis wyniku.
+        Parsowanie argumentów, wczytanie grafu z pliku wejściowego, utworzenie macierzy sąsiedztwa i macierzy Laplace'a.
+        W pętli do sprawdzania sukcesu podziału: obliczenie wektorów własnych i podział grafu.
+        wypisanie wyniku do pliku wyjściowego.
         \item \texttt{config.h / config.c} \\
-        Obsługa argumentów.
+        Obsługa argumentów. Walidacja pliku wejścioweg.
         \item \texttt{input.h / input.c} \\
-        Wczytywanie grafu z pliku, reprezentacja grafu - macierz sąsiedztwa.
+        Wczytywanie grafu z pliku.
+        Obsługa argumentów w oparciu o dane grafu.
         \item \texttt{mat\_vec.h / mat\_vec.c} \\
-        Odpowiedzialny za wektory, macierze oraz operacje na nich, w tym za utworzenie macierzy Laplace'a.
+        Tworzenie macierzy sąsiedztwa grafu w oparciu o dane wejściowe, obliczanie macierzy stopni, obliczanie macierzy Laplace'a grafu.
+        Operacje na wektorach i macierzach: wypisywanie, obliczanie iloczynu skalarnego, obliczanie normy euklidesowej, mnożenia macierzy, ortogonalizacji i normalizacji.
         \item \texttt{eigenvalues.h / eigenvalues.c} \\
-        Implementacja algorytmu Lanczosa i obliczanie wartości wektorów własnych macierzy Laplace'a.
+        Implementacja algorytmu Lanczosa, obliczanie wartości i wektorów własnych macierzy trójdiagonalnej i obliczanie przybliżonych wartości wektorów własnych macierzy Laplace'a.
         \item \texttt{clusterization.h / clusterization.c} \\
-        Implementacja algorytmu k-means do podziału grafu. Podział grafu.
+        Implementacja algorytmu klasteryzacji k-means do podziału grafu z minimalizacją przeciętych krawędzi i zachowaniem marginesu. Modyfikacja macierzy sąsiedztwa i wypisanie wyniku.
+        \item \texttt{test.h / test.c} \\
+        Testy poprawności algorytmu podziału grafu.
         \item \texttt{output.h / output.c} \\
-        Zapisanie wyniku w pliku wyjściowym w odpowiednim formacie.
+        Zapisanie wyniku w pliku wyjściowym w odpowiednim formacie - tekstowym lub binarnym.
     \end{itemize}
 
 
@@ -209,14 +209,19 @@ Program jest uruchamiany z linii poleceń i obsługuje następujące flagi:
         \includegraphics[width=0.65\linewidth, center]{img/config.png}
     
         \item \texttt{Input} \\
-        Przechowywanie informacji pobranych z pliku wejściowego. Informacje te są później wykorzystywane m.in. do utworzenia macierzy sąsiedztwa.
+        Przechowywanie informacji pobranych z pliku wejściowego. Informacje te są później wykorzystywane do utworzenia macierzy sąsiedztwa oraz wypisywania danych do pliku wyjściowego.
     
         \includegraphics[width=0.75\linewidth, center]{img/input.png}
 
         \item \texttt{LanczosEigenV} \\
-        Przechowywanie zmiennych do metody Lanczosa oraz do obliczania wartości własnych i przybliżonych wektorów własnych macierzy Laplace'a grafu.
+        Przechowywanie zmiennych do metody Lanczosa oraz do obliczania wartości własnych, przybliżonych wektorów własnych macierzy Laplace'a grafu oraz do podziału grafu.
     
         \includegraphics[width=0.825\linewidth, center]{img/lanczoseigenv.png}
+
+        \item \texttt{Result} \\
+        Przechowywanie zmiennych do wypisania wyniku w pierwszej linijce pliku wyjściowego.
+    
+        \includegraphics[width=0.825\linewidth, center]{img/result.png}
     
     \end{itemize}
 
@@ -227,64 +232,142 @@ Program jest uruchamiany z linii poleceń i obsługuje następujące flagi:
     \begin{itemize}
     
         \item \texttt{parse\_args} \\
-        Obsługa argumentów. Zapisanie konfiguracji do obiektu struktury Config. \\\\      \includegraphics[width=0.825\linewidth, center]{img/parse_args.png}
+        Obsługa argumentów. Zapisanie konfiguracji do obiektu struktury Config. Sprawdzenie i poprawa rozszerzenia pliku wyjściowego dla ustawionego formatu. \\\\      \includegraphics[width=0.8\linewidth, center]{img/parse_args.png}
 
         \item \texttt{read\_input} \\
-        Wczytanie danych z pliku wejściowego do obiektu struktury Input. \\\\      \includegraphics[width=0.825\linewidth, center]{img/read_input.png}
+        Wczytanie danych z pliku wejściowego do obiektu struktury Input. \\\\      \includegraphics[width=0.8\linewidth, center]{img/read_input.png}
         
         \item \texttt{get\_adjacency\_matrix} \\
-        Zapisanie grafu w formie macierzy sąsiedzywa. \\\\      \includegraphics[width=0.825\linewidth, center]{img/get_adjacency_matrix.png}
+        Zapisanie grafu w formie macierzy sąsiedzywa. \\\\      \includegraphics[width=0.8\linewidth, center]{img/get_adjacency_matrix.png}
         
         \item \texttt{calc\_laplacian} \\
         Obliczenie macierzy Laplace'a grafu. \\\\
-        \includegraphics[width=0.825\linewidth, center]{img/calc_laplacian.png}
+        \includegraphics[width=0.8\linewidth, center]{img/calc_laplacian.png}
         
         \item \texttt{lanczos} \\
-        Algorytm Lanczosa - obliczenie \(k\) wektorów własnych i zapisanie ich do macierzy. \\\\
-        \includegraphics[width=0.825\linewidth, center]{img/lanczos.png}
+        Algorytm Lanczosa - przekształcenie problemu obliczenia wartości wektorów własnych macierzy Laplace'a na ich obliczenie dla macierzy trójdiagonalnej. \\\\
+        \includegraphics[width=0.8\linewidth, center]{img/lanczos.png}
+
+        \item \texttt{qr\_algorithm} \\
+        Obliczenie wartości wektorów własnych dla macierzy trójdiagonalnej. \\\\
+        \includegraphics[width=0.8\linewidth, center]{img/qr_algorithm.png}
         
         \item \texttt{clusterization} \\
-        Algorytm klasteryzacji k-means (k-średnich) - podział wierzchołków na grupy. \\\\
-        \includegraphics[width=0.825\linewidth, center]{img/clusterization.png}
+        Algorytm klasteryzacji - podziału wierzchołków na grupy w oparciu o wartości wektorów własnych macierzy Laplace'a grafu. \\\\
+        \includegraphics[width=0.8\linewidth, center]{img/clusterization.png}
         
         \item \texttt{write\_output} \\
-        Wypisanie pliku wyjściowego z wynikiem i grafem. \\\\
-        \includegraphics[width=0.825\linewidth, center]{img/write_output.png}
+        Wypisanie pliku wyjściowego z wynikiem i podzielonym grafem w odpowiednim formacie. \\\\
+        \includegraphics[width=0.8\linewidth, center]{img/write_output.png}
         
     \end{itemize}
     
     
     
     \subsection{Pliki wejściowe i wyjściowe}
-    
-    \begin{itemize}
-    
-        \item \textbf{Format plików wejściowych} \\
-        Program akceptuje pliki wejściowe z rozszerzeniem .csrrg. Format danych wejściowych jest zdefiniowany za pomocą 5 linijek, z których każda odpowiada za zapis informacji.
-        \begin{enumerate}[label=\arabic*.] % Użycie pakietu enumitem do numerowania
-            \item Maksymalna możliwa liczba węzłów w wierszu (w grafie mogą być wiersze o ich mniejszej liczbie, ale nie o większej).
-            \item Indeksy węzłów w poszczególnych wierszach – liczba wszystkich indeksów odpowiada liczbie węzłów grafu.
-            \item Wskaźniki na pierwsze indeksy węzłów w liście wierszy z poprzedniego punktu.
-            \item Grupy węzłów połączone przy pomocy krawędzi.
-            \item Wskaźniki na pierwsze węzły w poszczególnych grupach z poprzedniego punktu.
+
+        \subsubsection{Plik wejściowy (\texttt{.csrrg})}
+
+        Program akceptuje pliki wejściowe z rozszerzeniem \texttt{.csrrg}. Format pliku składa się z pięciu sekcji, zapisanych w kolejnych linijkach:
+        \begin{enumerate}
+            \item Maksymalna liczba wierzchołków w dowolnym wierszu macierzy (graf może mieć wiersze o mniejszej liczbie sąsiadów, ale nie większej).
+            \item Lista sąsiadów wszystkich wierzchołków, zapisana sekwencyjnie.
+            \item Wskaźniki (indeksy) na początki list sąsiedztwa dla poszczególnych wierzchołków.
+            \item Lista grup wierzchołków połączonych krawędziami (reprezentacja krawędzi).
+            \item Wskaźniki na początki grup węzłów z poprzedniej listy.
         \end{enumerate}
         \textbf{Przykład:}
-            \begin{center}
+        \begin{center}
             \includegraphics[width=1\linewidth]{img/grafcsrrg.png}
         \end{center}
-    
-        \item \textbf{Format plików wyjściowych} \\
-    Pierwsza linijka pliku wyjściowego zawiera wynik działania programu w postaci: \\\\
-    \texttt{<wynik (S - pomyślnie, F - nieudanie)> <liczba\_części> <zachowany\_margines>} \\\\
-    Przykład: \texttt{S 2 0.045} \\\\
-    Kolejne linijki są w takim samym formacie jak plik wejściowy i zawierają podział grafu. \\
-    Wersja binarna zawiera te same informacje co tekstowa, ale w formie binarnej (struktury danych zapisane za pomocą \texttt{fwrite}).
 
 
-        
+        \subsubsection{Plik wyjściowy (\texttt{.txt} / \texttt{.bin})}
     
+        Po przetworzeniu danych program zapisuje wynik do pliku wyjściowego w formacie tekstowym lub binarnym.
+        \begin{itemize}
+            \item \textbf{Pierwsza linijka} zawiera wynik działania programu w formacie: \\
+            \texttt{<wynik (S - sukces, F - porażka)> <liczba\_części> <liczba\_przecięć> <zachowany\_margines>} \\
+            Przykład: \texttt{S 3 2 5}
+            \item \textbf{Kolejne linie} opisują strukturę grafu w tym samym formacie co plik wejściowy
+            \item \textbf{Format binarny} (\texttt{.bin}) zapisuje te same informacje co plik tekstowy, lecz w postaci binarnej za pomocą funkcji \texttt{fwrite}, co umożliwia szybsze wczytywanie i mniejszy rozmiar pliku. Przed wypisaniem każdej tablicy podawana jest liczba elementów do poprawnego odczytu.
+        \end{itemize}
+        Przykład fragmentu pliku tekstowego:
+        \begin{center}
+            \includegraphics[width=0.8\linewidth]{img/outputtxt.png}
+        \end{center}
+        Przykład fragmentu pliku binarnego:
+        \begin{center}
+            \includegraphics[width=0.8\linewidth]{img/outputbin.png}
+        \end{center}
+
+
+
+    \subsection{Testy}
+
+    \subsubsection{Test 1: Funkcje \texttt{dot\_product}, \texttt{norm} i \texttt{mat\_vec\_multiply}}
+    Pierwszy test sprawdza działanie funkcji do obliczania iloczynu skalarnego, normy wektora oraz mnożenia macierzy przez wektor. W ramach testu obliczono:
+    \begin{itemize}
+        \item Iloczyn skalarny wektorów \texttt{v1} i \texttt{v2}.
+        \item Normę wektora \texttt{v1}.
+        \item Wynik mnożenia macierzy \texttt{M} przez wektor \texttt{v1}.
     \end{itemize}
+    
+    \subsubsection{Test 2: Funkcje \texttt{orthogonalize} i \texttt{normalize}}
+    
+    Drugi test weryfikuje działanie funkcji odpowiedzialnych za ortogonalizację i normalizację wektorów. Sprawdzono:
+    \begin{itemize}
+        \item Ortogonalizację wektora \texttt{v} względem wektora \texttt{V1}.
+        \item Normalizację wektora \texttt{v} oraz wektora \texttt{u}.
+        \item Obsługę błędów dla próby normalizacji wektora zerowego.
+    \end{itemize}
+    
+    \subsubsection{Test 3: Metoda Lanczosa, algorytm QR i dzielenie}
+    
+    Trzeci test dotyczy implementacji metody Lanczosa oraz algorytmu QR. Sprawdzono:
+    \begin{itemize}
+        \item Inicjalizację i normalizację wektora \texttt{v1}.
+        \item Obliczenie wartości własnych i wektorów własnych macierzy Laplace'a grafu.
+        \item Dzielenie grafu na dwie części.
+    \end{itemize}
+    Wszystkie testy zakończyły się pomyślnie.
 
+
+
+    \section{Uruchomienie}
+
+    Aby skompilować i uruchomić program, należy posiadać zainstalowane narzędzia:
+    \begin{itemize} \item \texttt{gcc} – kompilator języka C, \item \texttt{make} – narzędzie do automatyzacji procesu kompilacji. \end{itemize}
+    Proces kompilacji jest zautomatyzowany za pomocą pliku \texttt{Makefile}. Aby skompilować projekt, wystarczy w terminalu wydać polecenie 'make'.
+    Po zakończeniu kompilacji, aby usunąć pliki wygenerowane podczas procesu (np. pliki obiektowe, pliki wykonywalne), można użyć polecenia 'make clear' lub 'make clear'.
+    Polecenie \texttt{make clean} usunie pliki, które zostały utworzone w wyniku kompilacji, umożliwiając "czyste" ponowne zbudowanie projektu w przyszłości.
+    Aby uruchomić program, należy postępować zgodnie z instrukcjami przedstawionymi w sekcji Flagi i argumenty. Przykład uruchomienia programu:
+    \begin{center}
+        \includegraphics[width=0.5\linewidth]{img/uruchomienie.png}
+    \end{center}
+    W pliku wyjściowym zostaje zapisany rezultat oraz informacje o podzielonym grafie:
+    \begin{center}
+        \includegraphics[width=0.75\linewidth]{img/uruchomienie2.png}
+    \end{center}
+    Przykład uruchomienia programu z wyjściem binarnym:
+    \begin{center}
+        \includegraphics[width=0.5\linewidth]{img/uruchomienie3.png}
+    \end{center}
+    \begin{center}
+        \includegraphics[width=0.75\linewidth]{img/uruchomienie4.png}
+    \end{center}
+
+
+
+    \section{Problemy i możliwe usprawnienia}
+    Podczas pracy nad programem napotkano kilka istotnych problemów:
+    \begin{enumerate}
+        \item \textbf{Nieoptymalna liczba przecięć:} Liczba przecięć nie zawsze jest optymalna. Niedokładne przybliżenia wartości własnych mogą prowadzić w konsekwencji do nieoptymalnego podziału.
+        \item \textbf{Problemy z większymi grafami:} Przy zastosowaniu metody Lanczosa do większych grafów mogą wystąpić problemy związane z wydajnością obliczeniową i stabilnością numeryczną. Dzielenie większych grafów trwa długo.
+        \item \textbf{Optymalizacja przechowywania macierzy:} Przechowywanie macierzy w tablicach dynamicznych jest nieefektywne w przypadku macierzy rzadkich, w których przechowuje się mnóstwo zer. Zamiast tego, warto by było rozważyć zastosowanie jednego z popularnych formatów przechowywania macierzy rzadkich, przykładowo Compressed Sparse Row (CSR).
+    \end{enumerate}
+    
+    
 
 
 \begin{thebibliography}{9}
