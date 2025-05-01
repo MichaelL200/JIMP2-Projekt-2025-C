@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "utils.h"
 
 // Funkcja sprawdzająca, czy nazwa pliku zawiera tylko dozwolone znaki
 int is_valid_filename(char *filename)
@@ -93,11 +94,7 @@ Config parse_args(int argc, char **argv)
             size_t base_len = dot ? (size_t)(dot - c.output_file) : strlen(c.output_file);
             size_t ext_len = strlen(c.format);
             char *new_output = malloc(base_len + ext_len + 2); // +1 na '.' +1 na '\0'
-            if (!new_output)
-            {
-                perror("malloc");
-                exit(EXIT_FAILURE);
-            }
+            check_alloc(new_output);
             strncpy(new_output, c.output_file, base_len); // Skopiuj nazwę pliku bez rozszerzenia
             new_output[base_len] = '.';                  // Dodaj kropkę
             strcpy(new_output + base_len + 1, c.format); // Dodaj nowe rozszerzenie
@@ -122,21 +119,24 @@ void validate_input_file(Config *c, int argc, char **argv)
         size_t len_e = strlen(ext);
         if(len_f < len_e || strcmp(c->input_file + len_f - len_e, ext) != 0)
         {
-            fprintf(stderr, "\tZłe rozszerzenie pliku wejściowego. Popawne rozszerzenie to .csrrg\n");
-            exit(EXIT_FAILURE);
+            error("Złe rozszerzenie pliku wejściowego. Popawne rozszerzenie to .csrrg")
         }
         
     }
     else
     {
-        fprintf(stderr, "\tBrak pliku wejściowego\n");
-        exit(EXIT_FAILURE);
+        error("Brak pliku wejściowego");
     }
 }
 
 // Wyświetlanie konfiguracji
 void print_config(const Config *c)
 {
+    if(c == NULL)
+    {
+        error("Zmienna Config nie może być NULL");
+    }
+
     // Wyświetlenie wczytanych argumentów
     printf("\tPlik wejściowy: %s\n", c->input_file);
     printf("\tLiczba części: %d\n", c->parts);

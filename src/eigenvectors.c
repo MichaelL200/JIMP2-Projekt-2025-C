@@ -6,6 +6,159 @@
 
 #include "eigenvectors.h"
 #include "mat_vec.h"
+#include "utils.h"
+
+// Mnożenie macierzy CSR przez wektor
+void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        y[i] = 0.0;
+        int row_start = A->row_ptr[i];
+        int row_end = A->row_ptr[i + 1];
+        for (int j = row_start; j < row_end; ++j)
+        {
+            y[i] += A->values[j] * x[A->col_index[j]];
+        }
+    }
+}
+
+
+// Metoda Lanczosa
+void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
+{
+    l->n = n;
+    l->m = m;
+
+    // Alokacja pamięci
+    l->V = (double*)malloc(n * m * sizeof(double));
+    check_alloc(l->V);
+    l->alpha = (double*)malloc(m * sizeof(double));
+    check_alloc(l->alpha);
+    l->beta = (double*)malloc((m - 1) * sizeof(double));
+    check_alloc(l->beta);
+    l->theta = NULL;
+    l->Y = NULL;
+    l->X = NULL;
+
+    // Inicjalizacja pierwszego wektora v0
+    double* v0 = l->V;
+    for (int i = 0; i < n; ++i)
+    {
+        v0[i] = rand() / (double)RAND_MAX;
+    }
+
+    // Normalizacja v0
+    double norm = 0.0;
+    for (int i = 0; i < n; ++i)
+    {
+        norm += v0[i] * v0[i];
+    }
+    norm = sqrt(norm);
+    for (int i = 0; i < n; ++i)
+    {
+        v0[i] /= norm;
+    }
+
+    // Inicjalizacja zmiennych pomocniczych
+    double* v_prev = (double*)calloc(n, sizeof(double));
+    check_alloc(v_prev);
+    double* w = (double*)malloc(n * sizeof(double));
+    check_alloc(w);
+    
+    for (int j = 0; j < m; ++j)
+    {
+        double* v = l->V + j * n;
+
+        // w = A * v
+        csr_matvec(A, v, w, n);
+
+        // alpha_j = v^T * w
+        double alpha = 0.0;
+        for (int i = 0; i < n; ++i)
+        {
+            alpha += v[i] * w[i];
+        }
+        l->alpha[j] = alpha;
+
+        // w = w - alpha_j * v - beta_{j-1} * v_{j-1}
+        for (int i = 0; i < n; ++i)
+        {
+            w[i] -= alpha * v[i] + (j > 0 ? l->beta[j - 1] * v_prev[i] : 0.0);
+        }
+
+        // beta_j = ||w||
+        double beta = 0.0;
+        for (int i = 0; i < n; ++i)
+        {
+            beta += w[i] * w[i];
+        }
+        beta = sqrt(beta);
+        if (j < m - 1)
+        {
+            l->beta[j] = beta;
+        }
+
+        // v_{j+1} = w / beta_j
+        if (j < m - 1)
+        {
+            double* v_next = l->V + (j + 1) * n;
+            for (int i = 0; i < n; ++i)
+            {
+                v_next[i] = w[i] / beta;
+            }
+        }
+
+        // Aktualizacja v_prev
+        memcpy(v_prev, v, n * sizeof(double));
+    }
+
+    // Zwolnienie pamięci pomocniczej
+    free(v_prev);
+    free(w);
+}
+
+// Wypisywanie wyniku metody Lanczosa
+void print_lev(const LanczosEigenV* l)
+{
+    printf("\n\tMacierz trójdiagonalna T:\n");
+    printf("\t\tWartości alpha:");
+    for (int i = 0; i < l->m; ++i)
+    {
+        if( !(i % 5) )
+        {
+            printf("\n\t\t\t");
+        }
+        printf("%f\t", l->alpha[i]);
+    }
+    printf("\n\t\tWartości beta:");
+    for (int i = 0; i < l->m - 1; ++i)
+    {
+        if( !(i % 5) )
+        {
+            printf("\n\t\t\t");
+        }
+        printf("%f\t", l->beta[i]);
+    }
+
+    printf("\n\tMacierz V (wektory ortonormalne):\n");
+}
+
+// Zwalnianie pamięci dla struktury LanczosEigenV
+void free_lev(LanczosEigenV* l)
+{
+    if(l == NULL)
+    {
+        error("Zmienna LanczosEigenV nie może być NULL");
+    }
+
+    if(l->V) free(l->V);
+    if(l->alpha) free(l->alpha);
+    if(l->beta) free(l->beta);
+    if(l->theta) free(l->theta);
+    if(l->Y) free(l->Y);
+    if(l->X) free(l->X);
+}
 
 /*
 // Inicjalizacja wartości obiektu struktury

@@ -12,12 +12,11 @@
 #include "clusterization.h"
 #include "output.h"
 
+// Maksymalna liczba prób podziału spektralnego
+#define MAX_ATTEMPTS 100
+
 // Maksymalny rozmiar grafu do wypisywania danych
 int max_print_size = 110;
-
-/*
-#define MAX_ATTEMPTS 100 // Maksymalna liczba prób
-*/
 
 int main(int argc, char *argv[])
 {
@@ -41,24 +40,21 @@ int main(int argc, char *argv[])
     // Obliczanie macierzy Laplace'a grafu L
     CSRMatrix_i *L = get_laplacian_matrix(&input);
     // Wypisanie macierzy Laplace'a
-    if(input.v_count < max_print_size) print_csr_matrix(L, input.v_count);
-    
-    /*
-    int *D = calc_degree_mat(A, input.v_count);
-    // Obliczenie macierzy Laplace'a grafu L
-    int *L = calc_laplacian(A, D, input.v_count);
-    free(D);
-    */
+    if(input.v_count < max_print_size)
+    {
+        printf("\n\tMacierz Laplace'a grafu L:\n");
+        print_csr_matrix(L, input.v_count);
+    }
 
-    /*
-    // Testy poprawności algorytmu
-    test1();
-    test2();
-    test3();
-    */
+    // Metoda Lanczosa
+    LanczosEigenV lev;
+    srand(time(NULL));
+    lanczos(L, &lev, input.v_count, input.v_count);
+    print_lev(&lev);
     
     /*
-    int attempts = 0; // Licznik liczby prób
+    // Licznik prób podziału spektralnego
+    int attempts = 0;
 
     Result *res = NULL;
 
@@ -107,15 +103,12 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Błąd: Wynik klasteryzacji jest NULL. Program zakończył działanie z niespełnionym marginesem.\n");
     }
-
+    
     // Wypisanie liczby prób
     printf("Liczba prób podziału: %d\n", attempts);
+    */
 
-    // Zwolnienie pamięci
-    free_input(&input);
-    free(L);
-    free(A); */
-
+    free_lev(&lev);
     free_csr_matrix(L);
     free_input(&input);
 

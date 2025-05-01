@@ -1,6 +1,8 @@
 #ifndef EIGENVECTORS_H
 #define EIGENVECTORS_H
 
+#include "mat_vec.h"
+
 // Struktura do przechowywania zmiennych potrzebnych do metody Lanczosa oraz do obliczenia przybliżeń wektorów własnych macierzy Laplace'a grafu
 typedef struct
 {
@@ -10,8 +12,6 @@ typedef struct
     int m;
     // baza ortonormalna V z wektorami v (baza przestrzeni Kryłowa)
     double* V;
-    // wektory w (macierz)
-    double* W;
     // macierz trójdiagonalna T
     double* alpha;
     double* beta;
@@ -24,6 +24,18 @@ typedef struct
 } LanczosEigenV;
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
+
+// Mnożenie macierzy CSR przez wektor
+void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n);
+
+// Metoda Lanczosa
+void lanczos(const CSRMatrix_i* A, LanczosEigenV* le, int n, int m);
+
+// Wypisywanie wyniku metody Lanczosa
+void print_lev(const LanczosEigenV* l);
+
+// Zwalnianie pamięci dla struktury LanczosEigenV
+void free_lev(LanczosEigenV* l);
 
 /*
 // Tolerancje

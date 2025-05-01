@@ -11,6 +11,13 @@ typedef struct
     int* col_index;  // Indeksy kolumn
     int* row_ptr;    // Początki wierszy w tablicy values
 } CSRMatrix_i;
+typedef struct
+{
+    int nnz;         // Liczba niezerowych elementów
+    double* values;  // Wartości niezerowe
+    int* col_index;  // Indeksy kolumn
+    int* row_ptr;    // Początki wierszy w tablicy values
+} CSRMatrix_d;
 
 // Wyświetlenie wektora
 void printv(int *v, int n, int n_row);

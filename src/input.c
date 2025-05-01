@@ -6,6 +6,7 @@
 #include "input.h"
 #include "mat_vec.h"
 #include "config.h"
+#include "utils.h"
 
 // Otwarcie pliku wejściowego i inicjalizacja
 void open_init_input(Input *i, const char *file)
@@ -47,12 +48,7 @@ void read_input(Input *i)
                 int val = atoi(token);
                 int *tmp = realloc(i->row_indices, (i->r_count + 1) * sizeof(int));
                 if (tmp == NULL)
-                {
-                    fprintf(stderr, "Błąd alokacji pamięci (row_indices)\n");
-                    free_input(i);
-                    fclose(i->in);
-                    exit(EXIT_FAILURE);
-                }
+                check_alloc(tmp);
                 i->row_indices = tmp;
                 i->row_indices[i->r_count++] = val;
                 token = strtok(NULL, ";");
@@ -66,13 +62,7 @@ void read_input(Input *i)
             {
                 int val = atoi(token);
                 int *tmp = realloc(i->first_vertices, (i->f_count + 1) * sizeof(int));
-                if(tmp == NULL)
-                {
-                    fprintf(stderr, "Błąd alokacji pamięci (first_vertices)\n");
-                    free_input(i);
-                    fclose(i->in);
-                    exit(EXIT_FAILURE);
-                }
+                check_alloc(tmp);
                 i->first_vertices = tmp;
                 i->first_vertices[i->f_count++] = val;
                 token = strtok(NULL, ";");
@@ -86,13 +76,7 @@ void read_input(Input *i)
             {
                 int val = atoi(token);
                 int *tmp = realloc(i->vertices_groups, (i->g_count + 1) * sizeof(int));
-                if (tmp == NULL) {
-                    fprintf(stderr, "Błąd alokacji pamięci (vertices_groups)\n");
-                    free(line);
-                    free_input(i);
-                    fclose(i->in);
-                    exit(EXIT_FAILURE);
-                }
+                check_alloc(tmp);
                 i->vertices_groups = tmp;
                 i->vertices_groups[i->g_count++] = val;
 
@@ -111,14 +95,7 @@ void read_input(Input *i)
             {
                 int val = atoi(token);
                 int *tmp = realloc(i->vertices_ptrs, (i->p_count + 1) * sizeof(int));
-                if(tmp == NULL)
-                {
-                    fprintf(stderr, "Błąd alokacji pamięci (vertices_ptrs)\n");
-                    free(line);
-                    free_input(i);
-                    fclose(i->in);
-                    exit(EXIT_FAILURE);
-                }
+                check_alloc(tmp);
                 i->vertices_ptrs = tmp;
                 i->vertices_ptrs[i->p_count++] = val;
                 token = strtok(NULL, ";");
@@ -168,7 +145,7 @@ void print_input(Input *i)
     printf("\n\tLimit wierzchołków w wierszu: %d\n", i->max_vertices);
 
     if (i->v_count >  max_print_size) {
-        printf("\n\tGraf jest zbyt duży, aby wyświetlić szczegóły.\n");
+        printf("\n\tGraf jest zbyt duży, by wyświetlić wczytane dane grafu.\n");
     } else {
         printf("\n\tIndeksy wierszy:\n");
         printv(i->row_indices, i->r_count, 10);
@@ -186,6 +163,11 @@ void print_input(Input *i)
 // Funkcja zwalniająca pamięć dla struktury Input
 void free_input(Input *i)
 {
+    if(i == NULL)
+    {
+        error("Zmienna Input nie może być NULL");
+    }
+
     if (i->row_indices) free(i->row_indices);
     if (i->first_vertices) free(i->first_vertices);
     if (i->vertices_groups) free(i->vertices_groups);
