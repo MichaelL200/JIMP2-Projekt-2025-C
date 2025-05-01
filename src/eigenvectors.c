@@ -7,6 +7,7 @@
 #include "eigenvectors.h"
 #include "mat_vec.h"
 
+/*
 // Inicjalizacja wartości obiektu struktury
 void lanczos_init(LanczosEigenV *l, int n, int m)
 {
@@ -504,3 +505,4 @@ void lanczos_free(LanczosEigenV *l)
     if (l->Y) free(l->Y);
     if (l->X) free(l->X);
 }
+*/

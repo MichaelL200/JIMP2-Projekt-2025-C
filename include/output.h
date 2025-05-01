@@ -12,7 +12,9 @@ typedef struct
     int margin_kept;
 } Result;
 
+/*
 // Wypisywanie grafu do pliku
 void write_output(char *output_file, Result *r, Input *i, int *A, int n, char *format);
+*/
 
 #endif // OUTPUT_H

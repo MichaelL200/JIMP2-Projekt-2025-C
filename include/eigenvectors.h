@@ -25,6 +25,7 @@ typedef struct
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
 
+/*
 // Tolerancje
 #define NORM_TOL 1e-3
 #define LANCZOS_TOL 1e-3
@@ -57,5 +58,6 @@ void compute_approximate_eigenvectors(LanczosEigenV *l);
 
 // Funkcja zwalniająca pamięć zajmowaną przez strukturę LanczosEigenV
 void lanczos_free(LanczosEigenV *l);
+*/
 
 #endif // EIGENVECTORS_H

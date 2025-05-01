@@ -8,6 +8,7 @@
 #include "clusterization.h"
 #include "output.h"
 
+/*
 // Funkcja testująca funkcje: dot_product, norm i mat_vec_multiply
 void test1()
 {
@@ -245,3 +246,4 @@ void test3()
     // Zwolnienie pamięci dla wyniku klasteryzacji
     free(r);
 }
+*/

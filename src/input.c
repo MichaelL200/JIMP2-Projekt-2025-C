@@ -49,8 +49,7 @@ void read_input(Input *i)
                 if (tmp == NULL)
                 {
                     fprintf(stderr, "Błąd alokacji pamięci (row_indices)\n");
-                    free(line);
-                    free(i->row_indices);
+                    free_input(i);
                     fclose(i->in);
                     exit(EXIT_FAILURE);
                 }
@@ -70,8 +69,7 @@ void read_input(Input *i)
                 if(tmp == NULL)
                 {
                     fprintf(stderr, "Błąd alokacji pamięci (first_vertices)\n");
-                    free(line);
-                    free(i->first_vertices);
+                    free_input(i);
                     fclose(i->in);
                     exit(EXIT_FAILURE);
                 }
@@ -90,8 +88,8 @@ void read_input(Input *i)
                 int *tmp = realloc(i->vertices_groups, (i->g_count + 1) * sizeof(int));
                 if (tmp == NULL) {
                     fprintf(stderr, "Błąd alokacji pamięci (vertices_groups)\n");
-                    free_input(i);
                     free(line);
+                    free_input(i);
                     fclose(i->in);
                     exit(EXIT_FAILURE);
                 }
@@ -117,7 +115,7 @@ void read_input(Input *i)
                 {
                     fprintf(stderr, "Błąd alokacji pamięci (vertices_ptrs)\n");
                     free(line);
-                    free(i->vertices_ptrs);
+                    free_input(i);
                     fclose(i->in);
                     exit(EXIT_FAILURE);
                 }
@@ -169,7 +167,7 @@ void print_input(Input *i)
     // Wyświetlenie wczytanych danych
     printf("\n\tLimit wierzchołków w wierszu: %d\n", i->max_vertices);
 
-    if (i->v_count > 100) {
+    if (i->v_count >  max_print_size) {
         printf("\n\tGraf jest zbyt duży, aby wyświetlić szczegóły.\n");
     } else {
         printf("\n\tIndeksy wierszy:\n");

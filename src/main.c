@@ -12,7 +12,12 @@
 #include "clusterization.h"
 #include "output.h"
 
+// Maksymalny rozmiar grafu do wypisywania danych
+int max_print_size = 110;
+
+/*
 #define MAX_ATTEMPTS 100 // Maksymalna liczba prób
+*/
 
 int main(int argc, char *argv[])
 {
@@ -33,13 +38,17 @@ int main(int argc, char *argv[])
     // Wypisanie informacji wczytanych z pliku wejściowego
     print_input(&input);
 
-    // Wczytanie grafu do macierzy sąsiedztwa A
-    int *A = get_adjacency_matrix(&input);
-    // Obliczenie macierzy stopni grafu D
+    // Obliczanie macierzy Laplace'a grafu L
+    CSRMatrix_i *L = get_laplacian_matrix(&input);
+    // Wypisanie macierzy Laplace'a
+    if(input.v_count < max_print_size) print_csr_matrix(L, input.v_count);
+    
+    /*
     int *D = calc_degree_mat(A, input.v_count);
     // Obliczenie macierzy Laplace'a grafu L
     int *L = calc_laplacian(A, D, input.v_count);
     free(D);
+    */
 
     /*
     // Testy poprawności algorytmu
@@ -48,6 +57,7 @@ int main(int argc, char *argv[])
     test3();
     */
     
+    /*
     int attempts = 0; // Licznik liczby prób
 
     Result *res = NULL;
@@ -103,8 +113,11 @@ int main(int argc, char *argv[])
 
     // Zwolnienie pamięci
     free_input(&input);
-    free(A);
     free(L);
+    free(A); */
+
+    free_csr_matrix(L);
+    free_input(&input);
 
     return EXIT_SUCCESS;
 }

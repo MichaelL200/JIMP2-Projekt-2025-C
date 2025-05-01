@@ -7,6 +7,7 @@
 #include "output.h"
 #include "input.h"
 
+/*
 int *resize_array(int *array, int current_capacity, int new_capacity)
 {
     int *new_array = realloc(array, new_capacity * sizeof(int));
@@ -198,3 +199,4 @@ void write_output(char *output_file, Result *r, Input *i, int *A, int n, char *f
 
     fclose(out);
 }
+*/

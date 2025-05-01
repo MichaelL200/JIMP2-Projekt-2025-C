@@ -7,6 +7,7 @@
 #include "clusterization.h"
 #include "output.h"
 
+/*
 #define MAX_ITERATIONS 100
 #define MAX_ATTEMPTS 20
 
@@ -302,3 +303,4 @@ void print_result(Result *r)
     printf("\t\tZachowany margines: %d\n", r->margin_kept);
     printf("\t\tWynik: %c\n", r->res);
 }
+*/

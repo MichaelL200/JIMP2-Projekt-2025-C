@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+// Definicja maksymalnego rozmiaru grafu do wypisywania danych
+extern int max_print_size;
+
 // Struktura do przechowywania danych z pliku wejściowego
 typedef struct
 {

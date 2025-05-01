@@ -3,6 +3,7 @@
 
 #include "output.h"
 
+/*
 // Funkcja pomocnicza do liczenia odległości euklidesowej
 double euclidean_distance(const double *a, const double *b, int n);
 
@@ -11,5 +12,6 @@ Result *clusterization(double *X, int v_count, int parts, int dimensions, double
 
 // Wypisanie wyniku klasteryzacji
 void print_result(Result *r);
+*/
 
 #endif // CLUSTERIZATION_H
