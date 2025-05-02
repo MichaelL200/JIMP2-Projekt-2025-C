@@ -41,6 +41,8 @@ clear: clean
 rebuild: clear all
 
 # Cele do uruchamiania programu z Valgrind dla różnych plików wejściowych
+g0: $(EXEC)
+	$(VALGRIND) ./$(EXEC) input/g0.csrrg
 0: $(EXEC)
 	$(VALGRIND) ./$(EXEC) input/graf.csrrg
 1: $(EXEC)

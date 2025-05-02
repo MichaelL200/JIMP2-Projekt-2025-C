@@ -25,6 +25,13 @@ typedef struct
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
 
+// Tablica struktur zawierających wartość własną oraz jej indeks
+typedef struct 
+{
+    double value;
+    int index;
+} EigenvalueIndex;
+
 // Mnożenie macierzy CSR przez wektor
 void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n);
 
@@ -42,6 +49,12 @@ void qr_algorithm(LanczosEigenV* le);
 
 // Wypisywanie wyniku algorytmu QR
 void print_qr(const LanczosEigenV* l);
+
+// Funkcja porównująca
+int compare_eigenvalues(const void* a, const void* b);
+
+// Sortowanie wartości i wektorów własnych rosnąco
+EigenvalueIndex* sort_eigenvalues(LanczosEigenV* l, int p);
 
 // Zwalnianie pamięci dla struktury LanczosEigenV
 void free_lev(LanczosEigenV* l);

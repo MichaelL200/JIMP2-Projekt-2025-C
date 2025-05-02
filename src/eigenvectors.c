@@ -285,44 +285,88 @@ void print_qr(const LanczosEigenV* l)
     if (l->n < max_print_size)
     {
         // Wypisanie wartości własnych
-        printf("\n\tWartości własne:");
+        printf("\n\tWartości własne:\n");
         for (int i = 0; i < l->m; ++i)
         {
-            if (i % 5 == 0)
-            {
-                printf("\n\t\t");
-            }
-            printf("%f\t", l->theta[i]);
+            printf("\t\ttheta_%d = %f\n", i, l->theta[i]);
         }
 
-        // Wypisanie wektorów własnych macierzy T
-        printf("\n\tWektory własne macierzy trójdiagonalnej T:\n");
-        for (int i = 0; i < l->m; ++i)
+        // Wypisanie wektorów własnych macierzy T jako wektorów
+        printf("\tWektory własne macierzy trójdiagonalnej T:\n");
+        for (int j = 0; j < l->m; ++j)
         {
-            printf("\t\t");
-            for (int j = 0; j < l->m; ++j)
+            printf("\t\ty_%d = [", j);
+            for (int i = 0; i < l->m; ++i)
             {
-                printf("%10.6f ", l->Y[i * l->m + j]);
+                printf("%10.6f", l->Y[i * l->m + j]);
+                if (i < l->m - 1) printf(", ");
             }
-            printf("\n");
+            printf("]\n");
         }
 
-        // Wypisanie wektorów własnych macierzy Laplace'a L
+        // Wypisanie wektorów własnych macierzy Laplace'a L jako wektorów
         printf("\tWektory własne macierzy Laplace'a grafu L:\n");
-        for (int i = 0; i < l->n; ++i)
+        for (int j = 0; j < l->m; ++j)
         {
-            printf("\t\t");
-            for (int j = 0; j < l->m; ++j)
+            printf("\t\tx_%d = [", j);
+            for (int i = 0; i < l->n; ++i)
             {
-                printf("%10.6f ", l->X[i * l->m + j]);
+                printf("%10.6f", l->X[i * l->m + j]);
+                if (i < l->n - 1) printf(", ");
             }
-            printf("\n");
+            printf("]\n");
         }
+
+        // Wypisanie 
     }
     else
     {
         printf("\n\tGraf jest zbyt duży, aby wyświetlić wynik algorytmu QR.\n");
     }
+}
+
+// Funkcja porównująca
+int compare_eigenvalues(const void* a, const void* b)
+{
+    double diff = ((double*)a)[0] - ((double*)b)[0];
+    return (diff > 0) - (diff < 0);
+}
+
+// Sortowanie wartości i wektorów własnych rosnąco
+EigenvalueIndex *sort_eigenvalues(LanczosEigenV* l, int p)
+{
+    EigenvalueIndex* eigvals = malloc(l->m * sizeof(EigenvalueIndex));
+    check_alloc(eigvals);
+    for (int i = 0; i < l->m; ++i)
+    {
+        eigvals[i].value = l->theta[i];
+        eigvals[i].index = i;
+    }
+
+    // Sortowanie wartości własnych
+    qsort(eigvals, l->m, sizeof(EigenvalueIndex), compare_eigenvalues);
+
+    // Wyświetlanie posortowanych wartości własnych i odpowiadających im wektorów własne
+    int count = 0;
+    printf("\n\tPosortowane wartości własne:\n");
+    for (int i = 0; i < l->m; ++i)
+    {
+        printf("\t\ttheta_%d = %.6f", eigvals[i].index, eigvals[i].value);
+        if(i != 0 && count < p)
+        {
+            printf("\t[TO CLUSTERIZATION]");
+            count++;
+        }    
+        printf("\n\t\tx_%d = [", eigvals[i].index);
+        for (int j = 0; j < l->n; ++j)
+        {
+            printf(" %.6f", l->X[j * l->m + eigvals[i].index]);
+        }
+        printf(" ]");
+        printf("\n");
+    }
+
+    return eigvals;
 }
 
 // Zwalnianie pamięci dla struktury LanczosEigenV

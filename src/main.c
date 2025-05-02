@@ -52,6 +52,9 @@ int main(int argc, char *argv[])
     qr_algorithm(&lev);
     print_qr(&lev);
     
+    // Sortowanie wartości i wektorów własnych rosnąco
+    EigenvalueIndex* eigenindex = sort_eigenvalues(&lev, config.parts);
+    
     /*
     // Licznik prób podziału spektralnego
     int attempts = 0;
@@ -108,6 +111,7 @@ int main(int argc, char *argv[])
     printf("Liczba prób podziału: %d\n", attempts);
     */
 
+    free(eigenindex);
     free_lev(&lev);
     free_csr_matrix(L);
     free_input(&input);
