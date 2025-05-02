@@ -28,6 +28,9 @@ CSRMatrix_i* get_laplacian_matrix(Input* input);
 // Wypisywanie macierzy CSR
 void print_csr_matrix(CSRMatrix_i* csr, int n);
 
+// Wypisywanie macierzy Laplace'a
+void print_laplacian_matrix(CSRMatrix_i* L, int n);
+
 // Zwalnianie pamięci dla struktury CSRMatrix
 void free_csr_matrix(CSRMatrix_i* csr);
 

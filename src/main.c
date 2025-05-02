@@ -40,11 +40,7 @@ int main(int argc, char *argv[])
     // Obliczanie macierzy Laplace'a grafu L
     CSRMatrix_i *L = get_laplacian_matrix(&input);
     // Wypisanie macierzy Laplace'a
-    if(input.v_count < max_print_size)
-    {
-        printf("\n\tMacierz Laplace'a grafu L:\n");
-        print_csr_matrix(L, input.v_count);
-    }
+    print_laplacian_matrix(L, input.v_count);
 
     // Metoda Lanczosa
     LanczosEigenV lev;

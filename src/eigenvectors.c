@@ -121,27 +121,43 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
 // Wypisywanie wyniku metody Lanczosa
 void print_lev(const LanczosEigenV* l)
 {
-    printf("\n\tMacierz trójdiagonalna T:\n");
-    printf("\t\tWartości alpha:");
-    for (int i = 0; i < l->m; ++i)
+    if(l->n < max_print_size)
     {
-        if( !(i % 5) )
+        printf("\n\tMacierz trójdiagonalna T:\n");
+        printf("\t\tWartości alpha:");
+        for (int i = 0; i < l->m; ++i)
         {
-            printf("\n\t\t\t");
+            if( !(i % 5) )
+            {
+                printf("\n\t\t\t");
+            }
+            printf("%f\t", l->alpha[i]);
         }
-        printf("%f\t", l->alpha[i]);
-    }
-    printf("\n\t\tWartości beta:");
-    for (int i = 0; i < l->m - 1; ++i)
-    {
-        if( !(i % 5) )
+        printf("\n\t\tWartości beta:");
+        for (int i = 0; i < l->m - 1; ++i)
         {
-            printf("\n\t\t\t");
+            if( !(i % 5) )
+            {
+                printf("\n\t\t\t");
+            }
+            printf("%f\t", l->beta[i]);
         }
-        printf("%f\t", l->beta[i]);
-    }
 
-    printf("\n\tMacierz V (wektory ortonormalne):\n");
+        printf("\n\tMacierz V (wektory ortonormalne):\n");
+        for (int i = 0; i < l->n; ++i)
+        {
+            printf("\t\t");
+            for (int j = 0; j < l->m; ++j)
+            {
+                printf("%10.6f ", l->V[j * l->n + i]);
+            }
+            printf("\n");
+        }
+    }
+    else
+    {
+        printf("\n\tGraf jest zbyt duży by wyświetlić wynik metody Lanczosa.\n");
+    }
 }
 
 // Zwalnianie pamięci dla struktury LanczosEigenV

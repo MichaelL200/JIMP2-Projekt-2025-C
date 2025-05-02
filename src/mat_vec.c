@@ -141,6 +141,16 @@ void print_csr_matrix(CSRMatrix_i* csr, int n)
     }
 }
 
+// Wypisywanie macierzy Laplace'a
+void print_laplacian_matrix(CSRMatrix_i* L, int n)
+{
+    if(n < max_print_size)
+    {
+        printf("\n\tMacierz Laplace'a grafu L:\n");
+        print_csr_matrix(L, n);
+    }
+}
+
 // Zwalnianie pamięci dla struktury CSRMatrix
 void free_csr_matrix(CSRMatrix_i* csr)
 {
