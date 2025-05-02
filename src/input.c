@@ -125,7 +125,8 @@ void check_input_data(int parts, int count, int *margin)
 
     // Zwiększenie minimalnego marginesu o 10% lub o stałą wartość
     int adjusted_margin = min_margin + (min_margin / 10); // Dodaj 10% minimalnego marginesu
-    if (adjusted_margin == min_margin) {
+    if (adjusted_margin == min_margin)
+    {
         adjusted_margin += 10; // Jeśli 10% to 0, zwiększ margines o 10
     }
 

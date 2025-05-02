@@ -54,6 +54,11 @@ int main(int argc, char *argv[])
     
     // Sortowanie wartości i wektorów własnych rosnąco
     EigenvalueIndex* eigenindex = sort_eigenvalues(&lev, config.parts);
+
+    // Algorytm klasteryzacji k-means
+    int* clusters = clusterization(&lev, eigenindex, input.v_count, config.parts);
+    printv(clusters, input.v_count, 10);
+    check_cluster_balance(clusters, input.v_count, config.parts, config.margin);
     
     /*
     // Licznik prób podziału spektralnego
@@ -111,6 +116,7 @@ int main(int argc, char *argv[])
     printf("Liczba prób podziału: %d\n", attempts);
     */
 
+    free(clusters);
     free(eigenindex);
     free_lev(&lev);
     free_csr_matrix(L);

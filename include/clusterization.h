@@ -2,6 +2,13 @@
 #define CLUSTERIZATION_H
 
 #include "output.h"
+#include "eigenvectors.h"
+
+// Algorytm klasteryzacji k-means
+int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k);
+
+// Sprawdzanie równowagi klastrów w zadanym marginesie procentowym
+int check_cluster_balance(int* clusters, int n, int k, int margin_percent);
 
 /*
 // Funkcja pomocnicza do liczenia odległości euklidesowej

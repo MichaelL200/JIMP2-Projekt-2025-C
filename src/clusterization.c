@@ -5,7 +5,171 @@
 #include <limits.h>
 
 #include "clusterization.h"
+#include "eigenvectors.h"
 #include "output.h"
+#include "utils.h"
+
+// Algorytm klasteryzacji k-means
+int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
+{
+    int dim = k - 1; // Liczba używanych wektorów własnych (pomijając pierwszy)
+    int* clusters = malloc(n * sizeof(int));
+    check_alloc(clusters);
+
+    // Alokacja przestrzeni dla reprezentacji punktów w przestrzeni własnej
+    double** points = malloc(n * sizeof(double*));
+    check_alloc(points);
+    for (int i = 0; i < n; i++)
+    {
+        points[i] = malloc(dim * sizeof(double));
+        check_alloc(points[i]);
+        for (int d = 0; d < dim; d++)
+        {
+            int eig_idx = eigvals[d + 1].index; // Pomijanie pierwszego wektora własnego
+            points[i][d] = l->X[i * l->m + eig_idx];
+        }
+    }
+
+    // Inicjalizacja centroidów jako pierwsze k punktów
+    double** centroids = malloc(k * sizeof(double*));
+    check_alloc(centroids);
+    for (int i = 0; i < k; i++)
+    {
+        centroids[i] = malloc(dim * sizeof(double));
+        check_alloc(centroids[i]);
+        for (int d = 0; d < dim; d++)
+        {
+            centroids[i][d] = points[i][d];
+        }
+    }
+
+    int* counts = malloc(k * sizeof(int));
+    check_alloc(counts);
+    int* assignments = malloc(n * sizeof(int));
+    check_alloc(assignments);
+    for (int i = 0; i < n; i++)
+        assignments[i] = -1;
+
+    int changed;
+    do
+    {
+        changed = 0;
+        // Przypisanie punktów do najbliższego centroidu
+        for (int i = 0; i < n; i++)
+        {
+            double min_dist = DBL_MAX;
+            int cluster = -1;
+            for (int j = 0; j < k; j++)
+            {
+                double dist = 0.0;
+                for (int d = 0; d < dim; d++)
+                {
+                    double diff = points[i][d] - centroids[j][d];
+                    dist += diff * diff;
+                }
+                if (dist < min_dist)
+                {
+                    min_dist = dist;
+                    cluster = j;
+                }
+            }
+            if (assignments[i] != cluster)
+            {
+                assignments[i] = cluster;
+                changed = 1;
+            }
+        }
+
+        // Aktualizacja centroidów
+        for (int j = 0; j < k; j++)
+        {
+            for (int d = 0; d < dim; d++)
+                centroids[j][d] = 0.0;
+            counts[j] = 0;
+        }
+        for (int i = 0; i < n; i++)
+        {
+            int cluster = assignments[i];
+            for (int d = 0; d < dim; d++)
+            {
+                centroids[cluster][d] += points[i][d];
+            }
+            counts[cluster]++;
+        }
+        for (int j = 0; j < k; j++)
+        {
+            if (counts[j] > 0)
+            {
+                for (int d = 0; d < dim; d++)
+                {
+                    centroids[j][d] /= counts[j];
+                }
+            }
+        }
+    } while (changed);
+
+    // Przypisanie wyników do wektora klastrów
+    for (int i = 0; i < n; i++)
+    {
+        clusters[i] = assignments[i];
+    }
+
+    // Zwolnienie pamięci
+    for (int i = 0; i < n; i++)
+    {
+        free(points[i]);
+    }
+    free(points);
+    for (int i = 0; i < k; i++)
+    {
+            free(centroids[i]);
+    }
+    free(centroids);
+    free(counts);
+    free(assignments);
+
+    return clusters;
+}
+
+// Sprawdzanie równowagi klastrów w zadanym marginesie procentowym
+int check_cluster_balance(int* clusters, int n, int k, int margin_percent)
+{
+    int* cluster_sizes = calloc(k, sizeof(int));
+    check_alloc(cluster_sizes);
+
+    // Zliczanie liczby wierzchołków w każdym klastrze
+    for (int i = 0; i < n; i++)
+    {
+        int cluster_id = clusters[i];
+        if (cluster_id < 0 || cluster_id >= k)
+        {
+            fprintf(stderr, "Nieprawidłowy identyfikator klastra: %d\n", cluster_id);
+            free(cluster_sizes);
+            return 0;
+        }
+        cluster_sizes[cluster_id]++;
+    }
+
+    // Obliczanie średniego rozmiaru klastra
+    double avg_size = (double)n / k;
+    double lower_bound = avg_size * (1.0 - margin_percent / 100.0);
+    double upper_bound = avg_size * (1.0 + margin_percent / 100.0);
+
+    // Sprawdzanie, czy rozmiary klastrów mieszczą się w dozwolonym marginesie
+    for (int i = 0; i < k; i++)
+    {
+        if (cluster_sizes[i] < lower_bound || cluster_sizes[i] > upper_bound)
+        {
+            printf("Klastr %d ma rozmiar %d, co wykracza poza dozwolony margines (%.2f - %.2f).\n",
+                   i, cluster_sizes[i], lower_bound, upper_bound);
+            free(cluster_sizes);
+            return 0;
+        }
+    }
+
+    free(cluster_sizes);
+    return 1;
+}
 
 /*
 #define MAX_ITERATIONS 100

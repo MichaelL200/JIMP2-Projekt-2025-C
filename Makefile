@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude
 LDFLAGS = -lm
 
 # Debugger i jego flagi
-VALGRIND = time valgrind --leak-check=full --show-leak-kinds=all
+VALGRIND = time valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 # Katalogi
 SRC_DIR = src
