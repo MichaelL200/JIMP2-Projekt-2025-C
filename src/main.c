@@ -46,7 +46,11 @@ int main(int argc, char *argv[])
     LanczosEigenV lev;
     srand(time(NULL));
     lanczos(L, &lev, input.v_count, input.v_count);
-    print_lev(&lev);
+    print_lanczos(&lev);
+
+    // Algorytm QR
+    qr_algorithm(&lev);
+    print_qr(&lev);
     
     /*
     // Licznik prób podziału spektralnego

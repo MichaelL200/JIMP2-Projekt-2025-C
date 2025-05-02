@@ -32,7 +32,16 @@ void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n);
 void lanczos(const CSRMatrix_i* A, LanczosEigenV* le, int n, int m);
 
 // Wypisywanie wyniku metody Lanczosa
-void print_lev(const LanczosEigenV* l);
+void print_lanczos(const LanczosEigenV* l);
+
+// Funkcja do rotacji Givensa – modyfikuje macierze Q i T
+void apply_givens_rotation(double* a, double* b, double* c, double* s);
+
+// Funkcja do obliczania wartości i wektorów własnych macierzy trójdiagonalnej T
+void qr_algorithm(LanczosEigenV* le);
+
+// Wypisywanie wyniku algorytmu QR
+void print_qr(const LanczosEigenV* l);
 
 // Zwalnianie pamięci dla struktury LanczosEigenV
 void free_lev(LanczosEigenV* l);

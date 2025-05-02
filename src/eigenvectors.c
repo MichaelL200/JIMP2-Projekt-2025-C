@@ -23,7 +23,6 @@ void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n)
     }
 }
 
-
 // Metoda Lanczosa
 void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
 {
@@ -119,7 +118,7 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
 }
 
 // Wypisywanie wyniku metody Lanczosa
-void print_lev(const LanczosEigenV* l)
+void print_lanczos(const LanczosEigenV* l)
 {
     if(l->n < max_print_size)
     {
@@ -157,6 +156,172 @@ void print_lev(const LanczosEigenV* l)
     else
     {
         printf("\n\tGraf jest zbyt duży by wyświetlić wynik metody Lanczosa.\n");
+    }
+}
+
+// Funkcja do rotacji Givensa – modyfikuje macierze Q i T
+void apply_givens_rotation(double* a, double* b, double* c, double* s)
+{
+    double r = hypot(*a, *b); // pierwiastek z kwadratów a i b
+    *c = *a / r;
+    *s = -*b / r;
+    *a = r;
+    *b = 0.0;
+}
+
+// Funkcja do obliczania wartości i wektorów własnych macierzy trójdiagonalnej T
+void qr_algorithm(LanczosEigenV* l)
+{
+    int m = l->m;
+    int n = l->n;
+
+    // Alokacja pamięci dla macierzy T (m x m)
+    double* T = (double*)malloc(m * m * sizeof(double));
+    check_alloc(T);
+    memset(T, 0, m * m * sizeof(double));
+    for (int i = 0; i < m; ++i)
+    {
+        T[i * m + i] = l->alpha[i];
+        if (i < m - 1)
+        {
+            T[i * m + i + 1] = l->beta[i];
+            T[(i + 1) * m + i] = l->beta[i];
+        }
+    }
+
+    // Alokacja pamięci dla macierzy Y (m x m) i inicjalizacja jako macierz jednostkowa
+    l->Y = (double*)malloc(m * m * sizeof(double));
+    check_alloc(l->Y);
+    memset(l->Y, 0, m * m * sizeof(double));
+    for (int i = 0; i < m; ++i)
+    {
+        l->Y[i * m + i] = 1.0;
+    }
+
+    // Iteracje algorytmu QR
+    const int max_iter = 1000;
+    const double tol = 1e-12; 
+    for (int iter = 0; iter < max_iter; ++iter)
+    {
+        // Sprawdzanie zbieżności
+        int converged = 1;
+        for (int i = 0; i < m - 1; ++i)
+        {
+            if (fabs(T[(i + 1) * m + i]) > tol)
+            {
+                converged = 0;
+                break;
+            }
+        }
+        if (converged)
+        {
+            break;
+        }
+
+        // Rotacje Givensa
+        for (int i = 0; i < m - 1; ++i)
+        {
+            double a = T[i * m + i];
+            double b = T[(i + 1) * m + i];
+            double c, s;
+            apply_givens_rotation(&a, &b, &c, &s);
+
+            // Zastosowanie rotacji do T
+            for (int j = i; j < m; ++j)
+            {
+                double tij = T[i * m + j];
+                double tji = T[(i + 1) * m + j];
+                T[i * m + j] = c * tij - s * tji;
+                T[(i + 1) * m + j] = s * tij + c * tji;
+            }
+            for (int j = 0; j <= i + 1; ++j)
+            {
+                double tij = T[j * m + i];
+                double tji = T[j * m + i + 1];
+                T[j * m + i] = c * tij - s * tji;
+                T[j * m + i + 1] = s * tij + c * tji;
+            }
+
+            // Zastosowanie rotacji do Y (gromadzenie Q)
+            for (int j = 0; j < m; ++j)
+            {
+                double yij = l->Y[j * m + i];
+                double yji = l->Y[j * m + i + 1];
+                l->Y[j * m + i] = c * yij - s * yji;
+                l->Y[j * m + i + 1] = s * yij + c * yji;
+            }
+        }
+    }
+
+    // Po konwergencji, wartości własne znajdują się na diagonali T
+    l->theta = (double*)malloc(m * sizeof(double));
+    check_alloc(l->theta);
+    for (int i = 0; i < m; ++i)
+    {
+        l->theta[i] = T[i * m + i];
+    }
+
+    // Obliczenie przybliżonych wektorów własnych macierzy L: X = V * Y
+    l->X = (double*)malloc(n * m * sizeof(double));
+    check_alloc(l->X);
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < m; ++j)
+        {
+            l->X[i * m + j] = 0.0;
+            for (int k = 0; k < m; ++k)
+            {
+                l->X[i * m + j] += l->V[i * m + k] * l->Y[k * m + j];
+            }
+        }
+    }
+
+    free(T);
+}
+
+// Wypisywanie wyniku algorytmu QR
+void print_qr(const LanczosEigenV* l)
+{
+    if (l->n < max_print_size)
+    {
+        // Wypisanie wartości własnych
+        printf("\n\tWartości własne:");
+        for (int i = 0; i < l->m; ++i)
+        {
+            if (i % 5 == 0)
+            {
+                printf("\n\t\t");
+            }
+            printf("%f\t", l->theta[i]);
+        }
+
+        // Wypisanie wektorów własnych macierzy T
+        printf("\n\tWektory własne macierzy trójdiagonalnej T:\n");
+        for (int i = 0; i < l->m; ++i)
+        {
+            printf("\t\t");
+            for (int j = 0; j < l->m; ++j)
+            {
+                printf("%10.6f ", l->Y[i * l->m + j]);
+            }
+            printf("\n");
+        }
+
+        // Wypisanie wektorów własnych macierzy Laplace'a L
+        printf("\tWektory własne macierzy Laplace'a grafu L:\n");
+        for (int i = 0; i < l->n; ++i)
+        {
+            printf("\t\t");
+            for (int j = 0; j < l->m; ++j)
+            {
+                printf("%10.6f ", l->X[i * l->m + j]);
+            }
+            printf("\n");
+        }
+    }
+    else
+    {
+        printf("\n\tGraf jest zbyt duży, aby wyświetlić wynik algorytmu QR.\n");
     }
 }
 
