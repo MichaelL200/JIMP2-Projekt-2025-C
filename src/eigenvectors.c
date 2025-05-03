@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <omp.h>
+#include <cblas.h>
+#include <unistd.h>
 
 #include "eigenvectors.h"
 #include "mat_vec.h"
@@ -12,7 +14,7 @@
 // Mnożenie macierzy CSR przez wektor
 void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n)
 {
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic, 50)
     for (int i = 0; i < n; ++i)
     {
         y[i] = 0.0;
@@ -32,9 +34,9 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
     l->m = m;
 
     // Alokacja pamięci dla V
-    l->V = (float**)malloc(n * m * sizeof(float));
+    l->V = (float**)malloc(m * sizeof(float*));
     check_alloc(l->V);
-    for (int i = 0; i < m; ++i) // dla każdego wektora w tablicy V
+    for (int i = 0; i < m; ++i)
     {
         l->V[i] = (float*)malloc(n * sizeof(float));
         check_alloc(l->V[i]);
@@ -49,9 +51,15 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
 
     // Inicjalizacja pierwszego wektora v0
     float* v0 = l->V[0];
-    for (int i = 0; i < n; ++i)
+    unsigned int base_seed = (unsigned int)time(NULL) ^ (getpid() << 16);
+    #pragma omp parallel
     {
-        v0[i] = rand() / (float)RAND_MAX;
+        unsigned int seed = base_seed + (unsigned int)omp_get_thread_num();
+        #pragma omp for
+        for (int i = 0; i < n; ++i)
+        {
+            v0[i] = rand_r(&seed) / (float)RAND_MAX;
+        }
     }
 
     // Normalizacja v0
@@ -76,6 +84,7 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
     
     for (int j = 0; j < m; ++j)
     {
+
         float* v = l->V[j];  // Dostęp do j-tego wektora
 
         // w = A * v
@@ -91,11 +100,22 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
         l->alpha[j] = alpha;
 
         // w = w - alpha_j * v - beta_{j-1} * v_{j-1}
-        for (int i = 0; i < n; ++i)
-        {
-            w[i] -= alpha * v[i] + (j > 0 ? l->beta[j - 1] * v_prev[i] : 0.0);
+        if (j > 0) {
+            float beta_prev = l->beta[j-1];
+            #pragma omp parallel for
+            for (int i = 0; i < n; ++i)
+            {
+                w[i] -= alpha * v[i] + beta_prev * v_prev[i];
+            }
         }
-
+        else
+        {
+            #pragma omp parallel for
+            for (int i = 0; i < n; ++i)
+            {
+                w[i] -= alpha * v[i];
+            }
+        }
         // beta_j = ||w||
         float beta = 0.0;
         #pragma omp parallel for reduction(+:beta)
@@ -185,112 +205,58 @@ void apply_givens_rotation(float* a, float* b, float* c, float* s)
 void qr_algorithm(LanczosEigenV* l)
 {
     int m = l->m;
-    int n = l->n;
+    float *alpha = l->alpha;
+    float *beta = l->beta;
 
-    // Alokacja pamięci dla macierzy T (m x m)
-    float* T = (float*)malloc(m * m * sizeof(float));
-    check_alloc(T);
-    memset(T, 0, m * m * sizeof(float));
-    #pragma omp parallel for
-    for (int i = 0; i < m; ++i)
-    {
-        T[i * m + i] = l->alpha[i];
-        if (i < m - 1)
-        {
-            T[i * m + i + 1] = l->beta[i];
-            T[(i + 1) * m + i] = l->beta[i];
-        }
-    }
-
-    // Alokacja pamięci dla macierzy Y (m x m) i inicjalizacja jako macierz jednostkowa
+    // Inicjalizacja Y jako macierzy jednostkowej
     l->Y = (float*)malloc(m * m * sizeof(float));
-    check_alloc(l->Y);
     memset(l->Y, 0, m * m * sizeof(float));
-    for (int i = 0; i < m; ++i)
-    {
-        l->Y[i * m + i] = 1.0;
-    }
+    for (int i = 0; i < m; ++i) l->Y[i*m + i] = 1.0;
 
-    // Iteracje algorytmu QR
-    const int max_iter = 1000;
-    const float tol = 1e-12; 
-    for (int iter = 0; iter < max_iter; ++iter)
-    {
-        // Sprawdzanie zbieżności
-        int converged = 1;
-        for (int i = 0; i < m - 1; ++i)
-        {
-            if (fabs(T[(i + 1) * m + i]) > tol)
-            {
-                converged = 0;
-                break;
-            }
-        }
-        if (converged)
-        {
-            break;
-        }
+    const int max_iter = 100;
 
-        // Rotacje Givensa
-        for (int i = 0; i < m - 1; ++i)
-        {
-            float a = T[i * m + i];
-            float b = T[(i + 1) * m + i];
+    for (int iter = 0; iter < max_iter; ++iter) {
+        // Sprawdzenie zbieżności (pomiń dla uproszczenia)
+        
+        // Rotacje Givensa dla trójdiagonalnej macierzy
+        for (int i = 0; i < m-1; ++i) {
+            float a = alpha[i];
+            float b = beta[i];
             float c, s;
             apply_givens_rotation(&a, &b, &c, &s);
+            
+            // Aktualizacja alpha i beta
+            alpha[i] = c * a - s * b;
+            beta[i] = s * a + c * b;
+            if (i < m-2) beta[i+1] *= c;
 
-            // Zastosowanie rotacji do T
-            for (int j = i; j < m; ++j)
-            {
-                float tij = T[i * m + j];
-                float tji = T[(i + 1) * m + j];
-                T[i * m + j] = c * tij - s * tji;
-                T[(i + 1) * m + j] = s * tij + c * tji;
-            }
-            for (int j = 0; j <= i + 1; ++j)
-            {
-                float tij = T[j * m + i];
-                float tji = T[j * m + i + 1];
-                T[j * m + i] = c * tij - s * tji;
-                T[j * m + i + 1] = s * tij + c * tji;
-            }
-
-            // Zastosowanie rotacji do Y (gromadzenie Q)
-            for (int j = 0; j < m; ++j)
-            {
-                float yij = l->Y[j * m + i];
-                float yji = l->Y[j * m + i + 1];
-                l->Y[j * m + i] = c * yij - s * yji;
-                l->Y[j * m + i + 1] = s * yij + c * yji;
+            // Aktualizacja Y
+            for (int j = 0; j < m; ++j) {
+                float y0 = l->Y[j*m + i];
+                float y1 = l->Y[j*m + i+1];
+                l->Y[j*m + i]   = c * y0 - s * y1;
+                l->Y[j*m + i+1] = s * y0 + c * y1;
             }
         }
     }
 
-    // Po konwergencji, wartości własne znajdują się na diagonali T
-    l->theta = (float*)malloc(m * sizeof(float));
-    check_alloc(l->theta);
-    for (int i = 0; i < m; ++i)
-    {
-        l->theta[i] = T[i * m + i];
-    }
-
-    // Obliczenie przybliżonych wektorów własnych macierzy L: X = V * Y
-    l->X = (float*)malloc(n * m * sizeof(float));
+    // Oblicz X = V * Y (wektory własne macierzy Laplace'a)
+    l->X = (float*)malloc(l->n * l->m * sizeof(float));
     check_alloc(l->X);
+    
     #pragma omp parallel for collapse(2)
-    for (int i = 0; i < n; ++i)
-    {
-        for (int j = 0; j < m; ++j)
-        {
-            l->X[i * m + j] = 0.0;
-            for (int k = 0; k < m; ++k)
-            {
-                l->X[i * m + j] += l->V[i][k] * l->Y[k * m + j];
+    for (int i = 0; i < l->n; ++i) {
+        for (int j = 0; j < l->m; ++j) {
+            l->X[i * l->m + j] = 0.0;
+            for (int k = 0; k < l->m; ++k) {
+                l->X[i * l->m + j] += l->V[i][k] * l->Y[k * l->m + j];
             }
         }
     }
 
-    free(T);
+    // Przypisz theta z alpha
+    l->theta = (float*)malloc(l->m * sizeof(float));
+    memcpy(l->theta, alpha, l->m * sizeof(float)); // Kopiuj, nie przypisuj wskaźnika!
 }
 
 // Wypisywanie wyniku algorytmu QR

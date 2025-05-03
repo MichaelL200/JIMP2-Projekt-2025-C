@@ -17,11 +17,11 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
     check_alloc(clusters);
 
     // Alokacja przestrzeni dla reprezentacji punktów w przestrzeni własnej
-    double** points = malloc(n * sizeof(double*));
+    float** points = malloc(n * sizeof(float*));
     check_alloc(points);
     for (int i = 0; i < n; i++)
     {
-        points[i] = malloc(dim * sizeof(double));
+        points[i] = malloc(dim * sizeof(float));
         check_alloc(points[i]);
         for (int d = 0; d < dim; d++)
         {
@@ -31,11 +31,11 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
     }
 
     // Inicjalizacja centroidów jako pierwsze k punktów
-    double** centroids = malloc(k * sizeof(double*));
+    float** centroids = malloc(k * sizeof(float*));
     check_alloc(centroids);
     for (int i = 0; i < k; i++)
     {
-        centroids[i] = malloc(dim * sizeof(double));
+        centroids[i] = malloc(dim * sizeof(float));
         check_alloc(centroids[i]);
         for (int d = 0; d < dim; d++)
         {
@@ -58,14 +58,14 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
         #pragma omp parallel for schedule(static)
         for (int i = 0; i < n; i++)
         {
-            double min_dist = DBL_MAX;
+            float min_dist = DBL_MAX;
             int cluster = -1;
             for (int j = 0; j < k; j++)
             {
-                double dist = 0.0;
+                float dist = 0.0;
                 for (int d = 0; d < dim; d++)
                 {
-                    double diff = points[i][d] - centroids[j][d];
+                    float diff = points[i][d] - centroids[j][d];
                     dist += diff * diff;
                 }
                 if (dist < min_dist)
