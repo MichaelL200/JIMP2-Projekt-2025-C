@@ -59,39 +59,4 @@ EigenvalueIndex* sort_eigenvalues(LanczosEigenV* l, int p);
 // Zwalnianie pamięci dla struktury LanczosEigenV
 void free_lev(LanczosEigenV* l);
 
-/*
-// Tolerancje
-#define NORM_TOL 1e-3
-#define LANCZOS_TOL 1e-3
-#define MAX_ITER 5
-#define TOLERANCE 1e-3
-
-// Inicjalizacja wartości obiektu struktury
-void lanczos_init(LanczosEigenV *l, int n, int m);
-
-// Losowanie dowolnego wektora v₁
-void lanczos_v1_init(LanczosEigenV *l);
-
-// Pierwszy inicjalizacyjny krok iteracyjny metody Lanczosa
-void lanczos_initial_step(LanczosEigenV *l, int* A);
-
-// Iteracje metody Lanczosa dla j = 2, ..., m
-void lanczos(LanczosEigenV *l, int *A);
-
-// Funkcja budująca macierz T z wartości własnych
-double* build_T(LanczosEigenV *l);
-
-// Funkcja sprawdzająca zbieżność macierzy T
-int check_convergence(double* T, int m, double tol);
-
-// Algorytm QR z rotacjami Givensa do obliczenia wartości własnych macierzy trójdiagonalnej T
-void qr_algorithm(LanczosEigenV *l);
-
-// Obliczenie X = V * Y
-void compute_approximate_eigenvectors(LanczosEigenV *l);
-
-// Funkcja zwalniająca pamięć zajmowaną przez strukturę LanczosEigenV
-void lanczos_free(LanczosEigenV *l);
-*/
-
 #endif // EIGENVECTORS_H

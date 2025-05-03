@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <omp.h>
 
 #include "config.h"
 #include "input.h"
@@ -11,9 +12,13 @@
 #include "test.h"
 #include "clusterization.h"
 #include "output.h"
+#include "utils.h"
+
+// Próg dla wielowątkowości
+#define MULTITHREADING_THRESHOLD 1
 
 // Maksymalna liczba prób podziału spektralnego
-#define MAX_ATTEMPTS 100
+#define MAX_ATTEMPTS 1
 
 // Maksymalny rozmiar grafu do wypisywania danych
 int max_print_size = 110;
@@ -36,6 +41,23 @@ int main(int argc, char *argv[])
     check_input_data(config.parts, input.v_count, &config.margin);
     // Wypisanie informacji wczytanych z pliku wejściowego
     print_input(&input);
+
+    // Ustawienie liczby procesorów
+    if(input.v_count > 1000)
+    {
+        long num_threads = sysconf(_SC_NPROCESSORS_ONLN);
+        if (num_threads < 1)
+        {
+            error("sysconf");
+        }
+        printf("\n\tLiczba dostępnych rdzeni: %ld\n", num_threads);
+        // Ustawienie liczby wątków w OpenMP
+        omp_set_num_threads(num_threads);
+    }
+    else
+    {
+        omp_set_num_threads(1);
+    }
 
     // Obliczanie macierzy Laplace'a grafu L
     CSRMatrix_i *L = get_laplacian_matrix(&input);

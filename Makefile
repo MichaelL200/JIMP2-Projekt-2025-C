@@ -1,10 +1,10 @@
 # Kompilator i jego flagi
 CC = cc
 CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude
-LDFLAGS = -lm
+LDFLAGS = -lm -fopenmp
 
 # Debugger i jego flagi
-VALGRIND = time valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
+VALGRIND = time valgrind --suppressions=libgomp.supp --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 # Katalogi
 SRC_DIR = src
