@@ -9,7 +9,6 @@
 #include "input.h"
 #include "mat_vec.h"
 #include "eigenvectors.h"
-#include "test.h"
 #include "clusterization.h"
 #include "output.h"
 #include "utils.h"
@@ -18,7 +17,7 @@
 #define MULTITHREADING_THRESHOLD 1
 
 // Maksymalna liczba prób podziału spektralnego
-#define MAX_ATTEMPTS 1
+#define MAX_ATTEMPTS 50
 
 // Maksymalny rozmiar grafu do wypisywania danych
 int max_print_size = 110;

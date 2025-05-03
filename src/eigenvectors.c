@@ -10,7 +10,7 @@
 #include "utils.h"
 
 // Mnożenie macierzy CSR przez wektor
-void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n)
+void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n)
 {
     #pragma omp parallel for
     for (int i = 0; i < n; ++i)
@@ -31,26 +31,31 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
     l->n = n;
     l->m = m;
 
-    // Alokacja pamięci
-    l->V = (double*)malloc(n * m * sizeof(double));
+    // Alokacja pamięci dla V
+    l->V = (float**)malloc(n * m * sizeof(float));
     check_alloc(l->V);
-    l->alpha = (double*)malloc(m * sizeof(double));
+    for (int i = 0; i < m; ++i) // dla każdego wektora w tablicy V
+    {
+        l->V[i] = (float*)malloc(n * sizeof(float));
+        check_alloc(l->V[i]);
+    }
+    l->alpha = (float*)malloc(m * sizeof(float));
     check_alloc(l->alpha);
-    l->beta = (double*)malloc((m - 1) * sizeof(double));
+    l->beta = (float*)malloc((m - 1) * sizeof(float));
     check_alloc(l->beta);
     l->theta = NULL;
     l->Y = NULL;
     l->X = NULL;
 
     // Inicjalizacja pierwszego wektora v0
-    double* v0 = l->V;
+    float* v0 = l->V[0];
     for (int i = 0; i < n; ++i)
     {
-        v0[i] = rand() / (double)RAND_MAX;
+        v0[i] = rand() / (float)RAND_MAX;
     }
 
     // Normalizacja v0
-    double norm = 0.0;
+    float norm = 0.0;
     #pragma omp parallel for reduction(+:norm)
     for (int i = 0; i < n; ++i)
     {
@@ -64,20 +69,20 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
     }
 
     // Inicjalizacja zmiennych pomocniczych
-    double* v_prev = (double*)calloc(n, sizeof(double));
+    float* v_prev = (float*)calloc(n, sizeof(float));
     check_alloc(v_prev);
-    double* w = (double*)malloc(n * sizeof(double));
+    float* w = (float*)malloc(n * sizeof(float));
     check_alloc(w);
     
     for (int j = 0; j < m; ++j)
     {
-        double* v = l->V + j * n;
+        float* v = l->V[j];  // Dostęp do j-tego wektora
 
         // w = A * v
         csr_matvec(A, v, w, n);
 
         // alpha_j = v^T * w
-        double alpha = 0.0;
+        float alpha = 0.0;
         #pragma omp parallel for reduction(+:alpha)
         for (int i = 0; i < n; ++i)
         {
@@ -92,7 +97,7 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
         }
 
         // beta_j = ||w||
-        double beta = 0.0;
+        float beta = 0.0;
         #pragma omp parallel for reduction(+:beta)
         for (int i = 0; i < n; ++i)
         {
@@ -107,7 +112,7 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
         // v_{j+1} = w / beta_j
         if (j < m - 1)
         {
-            double* v_next = l->V + (j + 1) * n;
+            float* v_next = l->V[j + 1];  // Dostęp do (j+1)-tego wektora
             #pragma omp parallel for
             for (int i = 0; i < n; ++i)
             {
@@ -116,7 +121,7 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
         }
 
         // Aktualizacja v_prev
-        memcpy(v_prev, v, n * sizeof(double));
+        memcpy(v_prev, v, n * sizeof(float));
     }
 
     // Zwolnienie pamięci pomocniczej
@@ -155,7 +160,7 @@ void print_lanczos(const LanczosEigenV* l)
             printf("\t\t");
             for (int j = 0; j < l->m; ++j)
             {
-                printf("%10.6f ", l->V[j * l->n + i]);
+                printf("%10.6f ", l->V[i][j]);
             }
             printf("\n");
         }
@@ -167,9 +172,9 @@ void print_lanczos(const LanczosEigenV* l)
 }
 
 // Funkcja do rotacji Givensa – modyfikuje macierze Q i T
-void apply_givens_rotation(double* a, double* b, double* c, double* s)
+void apply_givens_rotation(float* a, float* b, float* c, float* s)
 {
-    double r = hypot(*a, *b); // pierwiastek z kwadratów a i b
+    float r = hypot(*a, *b); // pierwiastek z kwadratów a i b
     *c = *a / r;
     *s = -*b / r;
     *a = r;
@@ -183,9 +188,9 @@ void qr_algorithm(LanczosEigenV* l)
     int n = l->n;
 
     // Alokacja pamięci dla macierzy T (m x m)
-    double* T = (double*)malloc(m * m * sizeof(double));
+    float* T = (float*)malloc(m * m * sizeof(float));
     check_alloc(T);
-    memset(T, 0, m * m * sizeof(double));
+    memset(T, 0, m * m * sizeof(float));
     #pragma omp parallel for
     for (int i = 0; i < m; ++i)
     {
@@ -198,9 +203,9 @@ void qr_algorithm(LanczosEigenV* l)
     }
 
     // Alokacja pamięci dla macierzy Y (m x m) i inicjalizacja jako macierz jednostkowa
-    l->Y = (double*)malloc(m * m * sizeof(double));
+    l->Y = (float*)malloc(m * m * sizeof(float));
     check_alloc(l->Y);
-    memset(l->Y, 0, m * m * sizeof(double));
+    memset(l->Y, 0, m * m * sizeof(float));
     for (int i = 0; i < m; ++i)
     {
         l->Y[i * m + i] = 1.0;
@@ -208,7 +213,7 @@ void qr_algorithm(LanczosEigenV* l)
 
     // Iteracje algorytmu QR
     const int max_iter = 1000;
-    const double tol = 1e-12; 
+    const float tol = 1e-12; 
     for (int iter = 0; iter < max_iter; ++iter)
     {
         // Sprawdzanie zbieżności
@@ -229,23 +234,23 @@ void qr_algorithm(LanczosEigenV* l)
         // Rotacje Givensa
         for (int i = 0; i < m - 1; ++i)
         {
-            double a = T[i * m + i];
-            double b = T[(i + 1) * m + i];
-            double c, s;
+            float a = T[i * m + i];
+            float b = T[(i + 1) * m + i];
+            float c, s;
             apply_givens_rotation(&a, &b, &c, &s);
 
             // Zastosowanie rotacji do T
             for (int j = i; j < m; ++j)
             {
-                double tij = T[i * m + j];
-                double tji = T[(i + 1) * m + j];
+                float tij = T[i * m + j];
+                float tji = T[(i + 1) * m + j];
                 T[i * m + j] = c * tij - s * tji;
                 T[(i + 1) * m + j] = s * tij + c * tji;
             }
             for (int j = 0; j <= i + 1; ++j)
             {
-                double tij = T[j * m + i];
-                double tji = T[j * m + i + 1];
+                float tij = T[j * m + i];
+                float tji = T[j * m + i + 1];
                 T[j * m + i] = c * tij - s * tji;
                 T[j * m + i + 1] = s * tij + c * tji;
             }
@@ -253,8 +258,8 @@ void qr_algorithm(LanczosEigenV* l)
             // Zastosowanie rotacji do Y (gromadzenie Q)
             for (int j = 0; j < m; ++j)
             {
-                double yij = l->Y[j * m + i];
-                double yji = l->Y[j * m + i + 1];
+                float yij = l->Y[j * m + i];
+                float yji = l->Y[j * m + i + 1];
                 l->Y[j * m + i] = c * yij - s * yji;
                 l->Y[j * m + i + 1] = s * yij + c * yji;
             }
@@ -262,7 +267,7 @@ void qr_algorithm(LanczosEigenV* l)
     }
 
     // Po konwergencji, wartości własne znajdują się na diagonali T
-    l->theta = (double*)malloc(m * sizeof(double));
+    l->theta = (float*)malloc(m * sizeof(float));
     check_alloc(l->theta);
     for (int i = 0; i < m; ++i)
     {
@@ -270,7 +275,7 @@ void qr_algorithm(LanczosEigenV* l)
     }
 
     // Obliczenie przybliżonych wektorów własnych macierzy L: X = V * Y
-    l->X = (double*)malloc(n * m * sizeof(double));
+    l->X = (float*)malloc(n * m * sizeof(float));
     check_alloc(l->X);
     #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; ++i)
@@ -280,7 +285,7 @@ void qr_algorithm(LanczosEigenV* l)
             l->X[i * m + j] = 0.0;
             for (int k = 0; k < m; ++k)
             {
-                l->X[i * m + j] += l->V[i * m + k] * l->Y[k * m + j];
+                l->X[i * m + j] += l->V[i][k] * l->Y[k * m + j];
             }
         }
     }
@@ -346,6 +351,7 @@ EigenvalueIndex *sort_eigenvalues(LanczosEigenV* l, int p)
 {
     EigenvalueIndex* eigvals = malloc(l->m * sizeof(EigenvalueIndex));
     check_alloc(eigvals);
+    
     for (int i = 0; i < l->m; ++i)
     {
         eigvals[i].value = l->theta[i];
@@ -355,7 +361,7 @@ EigenvalueIndex *sort_eigenvalues(LanczosEigenV* l, int p)
     // Sortowanie wartości własnych
     qsort(eigvals, l->m, sizeof(EigenvalueIndex), compare_eigenvalues);
 
-    // Wyświetlanie posortowanych wartości własnych i odpowiadających im wektorów własne
+    // Wyświetlanie posortowanych wartości własnych i odpowiadających im wektorów własnych
     int count = 0;
     printf("\n\tPosortowane wartości własne:\n");
     for (int i = 0; i < l->m; ++i)
@@ -363,13 +369,13 @@ EigenvalueIndex *sort_eigenvalues(LanczosEigenV* l, int p)
         printf("\t\ttheta_%d = %.6f", eigvals[i].index, eigvals[i].value);
         if(i != 0 && count < p)
         {
-            printf("\t[TO CLUSTERIZATION]");
+            printf("\t[TO CLUSTERIZATION]"); // Zawiera informacje do klasteryzacji
             count++;
         }    
         printf("\n\t\tx_%d = [", eigvals[i].index);
         for (int j = 0; j < l->n; ++j)
         {
-            printf(" %.6f", l->X[j * l->m + eigvals[i].index]);
+            printf(" %.6f", l->V[eigvals[i].index][j]);  // Pamiętaj, że zmieniłeś strukturę na tablicę tablic
         }
         printf(" ]");
         printf("\n");
@@ -386,7 +392,14 @@ void free_lev(LanczosEigenV* l)
         error("Zmienna LanczosEigenV nie może być NULL");
     }
 
-    if(l->V) free(l->V);
+    if(l->V)
+    {
+        for (int i = 0; i < l->m; i++)
+        {
+            free(l->V[i]);
+        }
+        free(l->V);
+    }
     if(l->alpha) free(l->alpha);
     if(l->beta) free(l->beta);
     if(l->theta) free(l->theta);

@@ -11,16 +11,16 @@ typedef struct
     // liczba iteracji
     int m;
     // baza ortonormalna V z wektorami v (baza przestrzeni Kryłowa)
-    double* V;
+    float** V;
     // macierz trójdiagonalna T
-    double* alpha;
-    double* beta;
+    float* alpha;
+    float* beta;
     // wartości własne macierzy T
-    double* theta;
+    float* theta;
     // wektory własne macierzy T (macierz)
-    double* Y;
+    float* Y;
     // przybliżone wektory własne macierzy L (macierz)
-    double* X;
+    float* X;
 } LanczosEigenV;
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
@@ -33,7 +33,7 @@ typedef struct
 } EigenvalueIndex;
 
 // Mnożenie macierzy CSR przez wektor
-void csr_matvec(const CSRMatrix_i* A, const double* x, double* y, int n);
+void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n);
 
 // Metoda Lanczosa
 void lanczos(const CSRMatrix_i* A, LanczosEigenV* le, int n, int m);
@@ -42,7 +42,7 @@ void lanczos(const CSRMatrix_i* A, LanczosEigenV* le, int n, int m);
 void print_lanczos(const LanczosEigenV* l);
 
 // Funkcja do rotacji Givensa – modyfikuje macierze Q i T
-void apply_givens_rotation(double* a, double* b, double* c, double* s);
+void apply_givens_rotation(float* a, float* b, float* c, float* s);
 
 // Funkcja do obliczania wartości i wektorów własnych macierzy trójdiagonalnej T
 void qr_algorithm(LanczosEigenV* le);
