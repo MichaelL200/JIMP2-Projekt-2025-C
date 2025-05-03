@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
 
 #include "input.h"
 #include "mat_vec.h"
@@ -120,22 +121,19 @@ void check_input_data(int parts, int count, int *margin)
         exit(EXIT_FAILURE);
     }
 
-    // Obliczenie minimalnego marginesu
-    int min_margin = count / parts - (count + parts - 1) / parts;
+    // Maksymalny rozmiar części, jeśli wszystkie inne mają rozmiar minimalny
+    int min_size = count / parts - 1;
+    int max_size = min_size + (count % parts != 0 ? 1 : 0) + 1;
 
-    // Zwiększenie minimalnego marginesu o 10% lub o stałą wartość
-    int adjusted_margin = min_margin + (min_margin / 10); // Dodaj 10% minimalnego marginesu
-    if (adjusted_margin == min_margin)
-    {
-        adjusted_margin += 10; // Jeśli 10% to 0, zwiększ margines o 10
-    }
+    // Minimalny margines potrzebny w procentach, by pomieścić największy możliwy klaster
+    double required_margin = 100.0 * ((double)(max_size - min_size) / min_size);
+    int min_margin = (int)ceil(required_margin);
 
-    // Sprawdzenie, czy margines jest wystarczająco duży
-    if (*margin < adjusted_margin)
+    if (*margin < min_margin)
     {
-        fprintf(stderr, "Błąd: Margines (%d) jest zbyt mały. Minimalny margines dla %d części i %d wierzchołków wynosi %d.\n", *margin, parts, count, adjusted_margin);
-        *margin = adjusted_margin; // Ustaw margines na zwiększony minimalny
-        fprintf(stderr, "Ustawiono margines na minimalny powiększony: %d.\n", *margin);
+        fprintf(stderr, "Ostrzeżenie: Podany margines (%d%%) jest zbyt mały.\n", *margin);
+        *margin = min_margin;
+        fprintf(stderr, "Ustawiono margines na minimalny możliwy: %d%%.\n", *margin);
     }
 }
 

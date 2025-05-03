@@ -42,27 +42,49 @@ int main(int argc, char *argv[])
     // Wypisanie macierzy Laplace'a
     print_laplacian_matrix(L, input.v_count);
 
-    // Metoda Lanczosa
-    LanczosEigenV lev;
+    // Inicjalizacja seeda randomizacji
     srand(time(NULL));
-    lanczos(L, &lev, input.v_count, input.v_count);
-    print_lanczos(&lev);
 
-    // Algorytm QR
-    qr_algorithm(&lev);
-    print_qr(&lev);
-    
-    // Sortowanie wartości i wektorów własnych rosnąco
-    EigenvalueIndex* eigenindex = sort_eigenvalues(&lev, config.parts);
+    // Iteracje podziału spektralnego
+    for(int attempts = 0; attempts < MAX_ATTEMPTS; attempts++)
+    {
+        printf("\n\tPRÓBA %d PODZIAŁU SPEKTRALNEGO\n", attempts);
 
-    // Algorytm klasteryzacji k-means
-    int* clusters = clusterization(&lev, eigenindex, input.v_count, config.parts);
-    printv(clusters, input.v_count, 10);
-    check_cluster_balance(clusters, input.v_count, config.parts, config.margin);
+        // Metoda Lanczosa
+        LanczosEigenV lev;
+        srand(time(NULL));
+        lanczos(L, &lev, input.v_count, input.v_count);
+        print_lanczos(&lev);
+
+        // Algorytm QR
+        qr_algorithm(&lev);
+        print_qr(&lev);
+        
+        // Sortowanie wartości i wektorów własnych rosnąco
+        EigenvalueIndex* eigenindex = sort_eigenvalues(&lev, config.parts);
+
+        // Algorytm klasteryzacji k-means
+        int* clusters = clusterization(&lev, eigenindex, input.v_count, config.parts);
+        free(eigenindex);
+        free_lev(&lev);
+        print_clusters(clusters, input.v_count);
+        if(check_cluster_balance(clusters, input.v_count, config.parts, config.margin))
+        {
+            break;
+        }
+        else
+        {
+            continue;
+        }
+    }
     
+    free_csr_matrix(L);
+    free_input(&input);
+
+    return EXIT_SUCCESS;
+}
+
     /*
-    // Licznik prób podziału spektralnego
-    int attempts = 0;
 
     Result *res = NULL;
 
@@ -115,12 +137,3 @@ int main(int argc, char *argv[])
     // Wypisanie liczby prób
     printf("Liczba prób podziału: %d\n", attempts);
     */
-
-    free(clusters);
-    free(eigenindex);
-    free_lev(&lev);
-    free_csr_matrix(L);
-    free_input(&input);
-
-    return EXIT_SUCCESS;
-}

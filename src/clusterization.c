@@ -131,8 +131,22 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
     return clusters;
 }
 
+// Wypisanie części dla każdego wierzchołka (klastrów)
+void print_clusters(int* clusters, int n)
+{
+    if(n < 3 * max_print_size)
+    {
+        printf("\n\tCzęści dla każdego wierzchołka:\n");
+        printv(clusters, n, 20);
+    }
+    else
+    {
+        printf("\n\tGraf jest zbyt duży, by wyświetlić części dla każego wierzchołka.\n");
+    }
+}
+
 // Sprawdzanie równowagi klastrów w zadanym marginesie procentowym
-int check_cluster_balance(int* clusters, int n, int k, int margin_percent)
+int check_cluster_balance(int* clusters, int n, int k, int margin)
 {
     int* cluster_sizes = calloc(k, sizeof(int));
     check_alloc(cluster_sizes);
@@ -149,26 +163,42 @@ int check_cluster_balance(int* clusters, int n, int k, int margin_percent)
         }
         cluster_sizes[cluster_id]++;
     }
+    free(clusters);
 
-    // Obliczanie średniego rozmiaru klastra
-    double avg_size = (double)n / k;
-    double lower_bound = avg_size * (1.0 - margin_percent / 100.0);
-    double upper_bound = avg_size * (1.0 + margin_percent / 100.0);
-
-    // Sprawdzanie, czy rozmiary klastrów mieszczą się w dozwolonym marginesie
-    for (int i = 0; i < k; i++)
+    // Wypisanie rozmiarów klastrów (części)
+    printf("\n\tRozmiary części (klastrów):\n");
+    for(int i = 0; i < k; i++)
     {
-        if (cluster_sizes[i] < lower_bound || cluster_sizes[i] > upper_bound)
-        {
-            printf("Klastr %d ma rozmiar %d, co wykracza poza dozwolony margines (%.2f - %.2f).\n",
-                   i, cluster_sizes[i], lower_bound, upper_bound);
-            free(cluster_sizes);
-            return 0;
-        }
+        printf("\t\tCzęść %d: %d\n", i, cluster_sizes[i]);
     }
 
+    // Sprawdzanie najmniejszego i największego klastra (części)
+    int min_cluster = n;
+    int max_cluster = 0;
+    for(int i = 0; i < k; i++)
+    {
+        if(cluster_sizes[i] < min_cluster)
+        {
+            min_cluster = cluster_sizes[i];
+        }
+        if(cluster_sizes[i] > max_cluster)
+        {
+            max_cluster = cluster_sizes[i];
+        }
+    }
     free(cluster_sizes);
-    return 1;
+    int margin_kept = (int)(100.0 * ((double)(max_cluster - min_cluster) / min_cluster));
+
+    // Sprawdzanie marginesu
+    if( margin_kept < margin)
+    {
+        return 1;
+    }
+    else
+    {
+        printf("\tMargines nie został spełniony.\n");
+        return 0;
+    }
 }
 
 /*
