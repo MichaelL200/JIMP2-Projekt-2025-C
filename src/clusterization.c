@@ -35,7 +35,7 @@ void split_clusters_by_fiedler_vector(float* fiedler_vector, int n, int* cluster
 }
 
 // Klasteryzacja k-means
-int* clusterization(float* eigenvectors, int n, int k, int dim, int margin)
+int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Result* result)
 {
     // Alokacja pamięci dla tablicy klastrów
     int* clusters = malloc(n * sizeof(int));
@@ -166,17 +166,16 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin)
 
         printf("\n");
         // Debugowanie równowagi klastrów
-        int max_margin = 50; // Maksymalny margines (np. 50%)
-        while (!check_cluster_balance(clusters, n, k, margin, NULL) && margin <= max_margin)
+        while (!check_cluster_balance(clusters, n, k, margin, result))
         {
-            fprintf(stderr, "\tUWAGA: MARGINES %.2f%% JEST ZBYT MAŁY DLA OPTYMALNEGO PODZIAŁU.\n", margin);
-            margin *= 1.5; // Zwiększenie marginesu przez mnożnik 1.5
-            if (margin > max_margin) margin = max_margin; // Ograniczenie do maksymalnego marginesu
-            fprintf(stderr, "\tZWIĘKSZONO MARGINES DO: %.2f%% I PONOWIONO PRÓBĘ.\n", margin);
+            fprintf(stderr, "\tUWAGA: MARGINES %d%% JEST ZBYT MAŁY DLA OPTYMALNEGO PODZIAŁU.\n", margin);
+            margin *= 1.5f; // Zwiększenie marginesu przez mnożnik 1.5
+            fprintf(stderr, "\tZWIĘKSZONO MARGINES DO: %d%% I PONOWIONO PRÓBĘ.\n", margin);
         }
 
-        if (margin >= max_margin) {
-            fprintf(stderr, "NIE UDAŁO SIĘ ZNALEŹĆ OPTYMALNEGO MARGINESU W GRANICACH %.2f%%.\n", max_margin);
+        // Jeśli równowaga klastrów została osiągnięta, ustaw wynik na sukces
+        if (result != NULL) {
+            result->res = 'S';
         }
 
         for (int i = 0; i < k; i++) {

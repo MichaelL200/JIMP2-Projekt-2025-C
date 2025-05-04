@@ -69,20 +69,18 @@ int main(int argc, char *argv[])
     compute_eigenvectors(L, input.v_count, config.parts, &eigenvectors, &eigenvalues);
     print_eigenpairs(eigenvalues, eigenvectors, config.parts, input.v_count);
 
+    Result *result = malloc(sizeof(Result));
+
     // Klasteryzacja k-means
-    int* clusters = clusterization(eigenvectors, input.v_count, config.parts, config.parts, config.margin);
+    int* clusters = clusterization(eigenvectors, input.v_count, config.parts, config.parts, config.margin, result);
     print_clusters(clusters, input.v_count, config.parts);
     free(eigenvectors);
     free(eigenvalues);
-    Result *result = malloc(sizeof(Result));
 
     // Sprawdzenie równowagi klastrów
-    if(check_cluster_balance(clusters, input.v_count, config.parts, config.margin, result))
-    {
+    if (result->res == 'S') {
         printf("\n\tPodział spektralny zakończony sukcesem!\n");
-    }
-    else
-    {
+    } else {
         printf("\n\tPodział spektralny nie powiódł się! Margines został przekroczony.\n");
     }
 
