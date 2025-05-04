@@ -85,6 +85,9 @@ int main(int argc, char *argv[])
         printf("\n\tPodział spektralny nie powiódł się! Margines został przekroczony.\n");
     }
 
+    // Modyfikacja grafu w oparciu o podział
+    int removed_edges = modify_graph(&input, clusters);
+
     // Wypisanie klastrów do pliku
     //write_output(config.output_file, &input, clusters, input.v_count, config.format);
 

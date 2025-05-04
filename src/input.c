@@ -143,9 +143,12 @@ void print_input(Input *i)
     // Wyświetlenie wczytanych danych
     printf("\n\tLimit wierzchołków w wierszu: %d\n", i->max_vertices);
 
-    if (i->v_count >  max_print_size) {
+    if (i->v_count >  max_print_size)
+    {
         printf("\n\tGraf jest zbyt duży, by wyświetlić wczytane dane grafu.\n");
-    } else {
+    }
+    else
+    {
         printf("\n\tIndeksy wierszy:\n");
         printv(i->row_indices, i->r_count, 10);
         printf("\n\tPierwsze wierzchołki w wierszach:\n");

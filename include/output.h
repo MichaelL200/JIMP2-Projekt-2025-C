@@ -12,6 +12,9 @@ typedef struct
     int margin_kept;
 } Result;
 
+// Modyfikacja grafu w oparciu o podział
+int modify_graph(Input *i, int* clusters);
+
 // Wypisanie wyników do pliku
 void write_output(char *output_file, Input *i, int *A, int n, char *format);
 

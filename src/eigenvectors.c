@@ -41,14 +41,14 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         exit(EXIT_FAILURE);
     }
 
-    printf("Rozpoczynanie obliczania par własnych...\n"); // Komunikat początkowy
+    printf("Rozpoczynanie obliczania par własnych...\n");
 
     int ido = 0;
     int info = 0;
     char bmat = 'I';
     char which[] = "SM"; // Obliczanie najmniejszych wartości własnych
     int nev = p;
-    float tol = 1e-3; // Increase tolerance from 1e-5 to 1e-3 for faster convergence
+    float tol = 1e-3; // Zwiększono tolerancję z 1e-5 do 1e-3 dla szybszej zbieżności
     float* resid = malloc(n * sizeof(float));
     int ncv = (2 * nev < n) ? 2 * nev : n;
     if (ncv > n) ncv = n;
@@ -72,7 +72,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
 
         if (info < 0) {
             fprintf(stderr, "Błąd ARPACK ssaupd_: %d. Sprawdź parametry wejściowe.\n", info);
-            free(resid); free(V); free(workd); free(workl); // Zwolnienie pamięci
+            free(resid); free(V); free(workd); free(workl);
             exit(EXIT_FAILURE);
         }
 
@@ -85,7 +85,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         else
         {
             fprintf(stderr, "Nieobsługiwany status ARPACK: %d\n", ido);
-            free(resid); free(V); free(workd); free(workl); // Zwolnienie pamięci
+            free(resid); free(V); free(workd); free(workl);
             exit(1);
         }
     }
@@ -93,7 +93,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     if (info != 0)
     {
         fprintf(stderr, "Błąd ARPACK: %d\n", info);
-        free(resid); free(V); free(workd); free(workl); // Zwolnienie pamięci
+        free(resid); free(V); free(workd); free(workl);
         exit(1);
     }
 
@@ -113,12 +113,12 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     if (info == 1)
     {
         fprintf(stderr, "Błąd ARPACK: Nieosiągnięta dokładność w obliczeniach wartości własnych.\n");
-        free(select); free(D); free(V); free(workd); free(workl); free(resid); // Zwolnienie pamięci
+        free(select); free(D); free(V); free(workd); free(workl); free(resid);
         exit(EXIT_FAILURE);
     } else if (info != 0)
     {
         fprintf(stderr, "Błąd ARPACK: %d\n", info);
-        free(select); free(D); free(V); free(workd); free(workl); free(resid); // Zwolnienie pamięci
+        free(select); free(D); free(V); free(workd); free(workl); free(resid);
         exit(EXIT_FAILURE);
     }
 
@@ -139,13 +139,6 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
                 V[j * nev + i] /= norm;
             }
         }
-    }
-
-    // Logowanie wartości własnych do debugowania
-    fprintf(stderr, "Obliczone wartości własne:\n");
-    for (int i = 0; i < nev; i++)
-    {
-        fprintf(stderr, "Wartość własna %d: %.6f\n", i, D[i]);
     }
 
     *eigenvectors = malloc(n * nev * sizeof(float));
@@ -193,8 +186,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
             }
         }
     }
-
-    printf("Obliczanie par własnych zakończone.\n"); // Komunikat końcowy
+    printf("\033[F\033[K");
 
     // Zwolnienie pamięci dla zmiennych tymczasowych
     free(select);
