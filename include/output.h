@@ -19,6 +19,6 @@ int modify_graph(Input *i, int* clusters);
 void print_result(Result *result);
 
 // Wypisanie wyników do pliku
-void write_output(char *output_file, Input *i, int *A, int n, char *format);
+void write_output(char *output_file, Input *i, Result *r, int *A, int n, char *format);
 
 #endif // OUTPUT_H

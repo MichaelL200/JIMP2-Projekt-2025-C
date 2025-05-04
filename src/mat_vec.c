@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <string.h> // Include for memset
+#include <string.h> // Dołączono dla memset
 
 #include "mat_vec.h"
 #include "eigenvectors.h"
@@ -40,15 +40,15 @@ CSRMatrix_i* get_laplacian_matrix(Input* input)
         for (int j = row_start + 1; j < row_end; j++) {
             int neighbor = input->vertices_groups[j];
             degrees[vertex]++;
-            degrees[neighbor]++; // Increment degree for the neighbor
+            degrees[neighbor]++; // Zwiększenie stopnia dla sąsiada
             nnz_per_row[vertex]++;
-            nnz_per_row[neighbor]++; // Account for bidirectional edge
+            nnz_per_row[neighbor]++; // Uwzględnienie krawędzi dwukierunkowej
         }
     }
 
-    // Add diagonal elements to nnz_per_row
+    // Dodanie elementów diagonalnych do nnz_per_row
     for (int i = 0; i < n; i++) {
-        nnz_per_row[i]++; // Each row has one diagonal element
+        nnz_per_row[i]++; // Każdy wiersz ma jeden element diagonalny
         total_nnz += nnz_per_row[i];
     }
 
@@ -56,15 +56,15 @@ CSRMatrix_i* get_laplacian_matrix(Input* input)
     CSRMatrix_i* csr = malloc(sizeof(CSRMatrix_i));
     csr->nnz = total_nnz;
     csr->values = malloc(total_nnz * sizeof(double));
-    memset(csr->values, 0, total_nnz * sizeof(double)); // Initialize values to zero
+    memset(csr->values, 0, total_nnz * sizeof(double)); // Inicjalizacja wartości na zero
     csr->col_index = malloc(total_nnz * sizeof(int));
-    memset(csr->col_index, 0, total_nnz * sizeof(int)); // Initialize col_index to zero
+    memset(csr->col_index, 0, total_nnz * sizeof(int)); // Inicjalizacja col_index na zero
     csr->row_ptr = malloc((n + 1) * sizeof(int));
 
     if (!csr->values || !csr->col_index || !csr->row_ptr) {
-        fprintf(stderr, "Memory allocation failed in get_laplacian_matrix.\n");
-        free(csr->values); free(csr->col_index); free(csr->row_ptr); free(csr); // Free memory
-        free(degrees); free(nnz_per_row); // Free temporary arrays
+        fprintf(stderr, "Nieudana alokacja pamięci w get_laplacian_matrix.\n");
+        free(csr->values); free(csr->col_index); free(csr->row_ptr); free(csr); // Zwolnij pamięć
+        free(degrees); free(nnz_per_row); // Zwolnij tymczasowe tablice
         return NULL;
     }
 
@@ -87,19 +87,19 @@ CSRMatrix_i* get_laplacian_matrix(Input* input)
         {
             int neighbor = input->vertices_groups[j];
 
-            // Add edge for vertex
+            // Dodaj krawędź dla wierzchołka
             int idx = csr->row_ptr[vertex] + current_position[vertex]++;
             csr->values[idx] = -1.0;
             csr->col_index[idx] = neighbor;
 
-            // Add edge for neighbor (bidirectional)
+            // Dodaj krawędź dla sąsiada (dwukierunkowa)
             idx = csr->row_ptr[neighbor] + current_position[neighbor]++;
             csr->values[idx] = -1.0;
             csr->col_index[idx] = vertex;
         }
     }
 
-    // Add diagonal elements
+    // Dodaj elementy diagonalne
     for (int i = 0; i < n; i++)
     {
         int idx = csr->row_ptr[i] + current_position[i]++;
@@ -135,7 +135,7 @@ CSRMatrix_i* get_laplacian_matrix(Input* input)
 
     free(degrees);
     free(nnz_per_row);
-    free(current_position); // Ensure all temporary memory is freed
+    free(current_position); // Upewnij się, że cała tymczasowa pamięć została zwolniona
     
     return csr;
 }

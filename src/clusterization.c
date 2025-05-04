@@ -11,29 +11,31 @@
 #include "output.h"
 #include "utils.h"
 
-// Comparison function for qsort
-int compare_floats(const float* a, const float* b) {
+// Funkcja porównawcza dla qsort
+int compare_floats(const float* a, const float* b)
+{
     return (*a > *b) - (*a < *b);
 }
 
-// Split clusters based on the Fiedler vector
-void split_clusters_by_fiedler_vector(float* fiedler_vector, int n, int* clusters) {
-    // Calculate the median of the Fiedler vector
+// Podział klastrów na podstawie wektora Fiedlera
+void split_clusters_by_fiedler_vector(float* fiedler_vector, int n, int* clusters)
+{
+    // Obliczanie mediany wektora Fiedlera
     float* sorted = malloc(n * sizeof(float));
     memcpy(sorted, fiedler_vector, n * sizeof(float));
     qsort(sorted, n, sizeof(float), (int (*)(const void*, const void*))compare_floats);
 
     float median = sorted[n / 2];
-    free(sorted); // Ensure sorted array is freed
+    free(sorted);
 
-    // Assign clusters based on the median
+    // Przypisanie klastrów na podstawie mediany
     for (int i = 0; i < n; i++) {
         clusters[i] = (fiedler_vector[i] >= median) ? 1 : 0;
     }
 }
 
 // Klasteryzacja k-means
-int* clusterization(float* eigenvectors, int n, int k, int dim)
+int* clusterization(float* eigenvectors, int n, int k, int dim, int margin)
 {
     // Alokacja pamięci dla tablicy klastrów
     int* clusters = malloc(n * sizeof(int));
@@ -52,7 +54,7 @@ int* clusterization(float* eigenvectors, int n, int k, int dim)
         }
     }
 
-    // Improved normalization for eigenvectors
+    // Normalizacja wektorów własnych
     for (int i = 0; i < n; i++) {
         float norm = 0.0;
         for (int d = 0; d < dim; d++) {
@@ -67,7 +69,7 @@ int* clusterization(float* eigenvectors, int n, int k, int dim)
     }
 
     if (k == 2) {
-        split_clusters_by_fiedler_vector(eigenvectors + n, n, clusters); // Use the second eigenvector
+        split_clusters_by_fiedler_vector(eigenvectors + n, n, clusters); // Użycie drugiego wektora własnego
     } else {
         // Inicjalizacja centroidów jako pierwszych k punktów
         float** centroids = malloc(k * sizeof(float*));
@@ -161,29 +163,26 @@ int* clusterization(float* eigenvectors, int n, int k, int dim)
             clusters[i] = assignments[i];
         }
 
-        // Enhanced debugging for cluster balance
-        float margin = 10.0; // Example margin value
+        // Debugowanie równowagi klastrów
         if (!check_cluster_balance(clusters, n, k, margin, NULL)) {
-            fprintf(stderr, "Cluster balance check failed. Cluster sizes:\n");
+            fprintf(stderr, "Sprawdzenie równowagi klastrów nie powiodło się. Rozmiary klastrów:\n");
             for (int i = 0; i < k; i++) {
-                fprintf(stderr, "Cluster %d: %d points\n", i, counts[i]);
+                fprintf(stderr, "Klaster %d: %d punktów\n", i, counts[i]);
             }
         }
 
-        // Ensure memory for centroids is freed (if k > 2)
         for (int i = 0; i < k; i++) {
-            free(centroids[i]); // Free each centroid
+            free(centroids[i]);
         }
-        free(centroids); // Free the outer array
-        free(counts); // Free counts array
-        free(assignments); // Free assignments array
+        free(centroids);
+        free(counts);
+        free(assignments);
     }
 
-    // Ensure memory for points is freed
     for (int i = 0; i < n; i++) {
-        free(points[i]); // Free each inner array
+        free(points[i]);
     }
-    free(points); // Free the outer array
+    free(points);
 
     return clusters;
 }
@@ -238,16 +237,16 @@ int check_cluster_balance(int* clusters, int n, int k, float margin, Result* res
 
     if (result != NULL)
     {
-        float min_margin = FLT_MAX;
+        float max_margin = 0.0f;
         for (int i = 0; i < k; i++)
         {
             float cluster_margin = fabs((float)counts[i] - avg) / avg * 100.0;
-            if (cluster_margin < min_margin)
+            if (cluster_margin > max_margin)
             {
-                min_margin = cluster_margin;
+                max_margin = cluster_margin;
             }
         }
-        result->margin_kept = (int)(100.0 - min_margin);
+        result->margin_kept = (int)max_margin; // Zapisanie rzeczywistego marginesu
     }
 
     free(counts);

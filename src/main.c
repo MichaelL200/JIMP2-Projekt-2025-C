@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     print_eigenpairs(eigenvalues, eigenvectors, config.parts, input.v_count);
 
     // Klasteryzacja k-means
-    int* clusters = clusterization(eigenvectors, input.v_count, config.parts, config.parts);
+    int* clusters = clusterization(eigenvectors, input.v_count, config.parts, config.parts, config.margin);
     print_clusters(clusters, input.v_count, config.parts);
     free(eigenvectors);
     free(eigenvalues);
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     print_result(result);
 
     // Wypisanie klastrów do pliku
-    //write_output(config.output_file, &input, clusters, input.v_count, config.format);
+    write_output(config.output_file, &input, result, clusters, input.v_count, config.format);
 
     free(result);
     free(clusters);

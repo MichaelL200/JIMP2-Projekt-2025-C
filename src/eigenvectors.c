@@ -41,7 +41,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         exit(EXIT_FAILURE);
     }
 
-    printf("Rozpoczynanie obliczania par własnych...\n");
+    printf("Obliczanie %d. par własnych...\n", p);
 
     int ido = 0;
     int info = 0;
@@ -61,7 +61,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     int ipntr[14] = {0};
 
     iparam[0] = 1; // Dokładne przesunięcia
-    iparam[2] = 1000; // Reduce maximum iterations from 5000 to 1000
+    iparam[2] = 1000; // Zmniejszono maksymalną liczbę iteracji z 5000 do 1000
     iparam[6] = 1; // Tryb 1: standardowy problem wartości własnych
 
     while (1)
@@ -188,7 +188,6 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     }
     printf("\033[F\033[K");
 
-    // Zwolnienie pamięci dla zmiennych tymczasowych
     free(select);
     free(V);
     free(workd);
@@ -196,7 +195,6 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     free(D);
     free(resid);
 
-    // Dodanie bariery w celu poprawnego zakończenia wątków OpenMP
     #pragma omp parallel
     {
         #pragma omp barrier
