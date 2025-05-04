@@ -163,7 +163,7 @@ int* clusterization(float* eigenvectors, int n, int k, int dim)
 
         // Enhanced debugging for cluster balance
         float margin = 10.0; // Example margin value
-        if (!check_cluster_balance(clusters, n, k, margin)) {
+        if (!check_cluster_balance(clusters, n, k, margin, NULL)) {
             fprintf(stderr, "Cluster balance check failed. Cluster sizes:\n");
             for (int i = 0; i < k; i++) {
                 fprintf(stderr, "Cluster %d: %d points\n", i, counts[i]);
@@ -209,8 +209,9 @@ void print_clusters(int* clusters, int n, int k)
 }
 
 // Sprawdzenie równowagi klastrów
-int check_cluster_balance(int* clusters, int n, int k, float margin)
+int check_cluster_balance(int* clusters, int n, int k, float margin, Result* result)
 {
+    if(result != NULL) result->parts = k;
     int* counts = malloc(k * sizeof(int));
     check_alloc(counts);
     for (int i = 0; i < k; i++)
@@ -229,11 +230,27 @@ int check_cluster_balance(int* clusters, int n, int k, float margin)
         float upper_bound = avg * (1 + margin / 100.0);
         if (counts[i] < lower_bound || counts[i] > upper_bound)
         {
-            free(counts); // Ensure counts array is freed
-            return 0; // Not balanced
+            free(counts);
+            if(result != NULL) result->res = 'F';
+            return 0; // Niezrównoważone
         }
     }
 
-    free(counts); // Ensure counts array is freed
-    return 1; // Balanced
+    if (result != NULL)
+    {
+        float min_margin = FLT_MAX;
+        for (int i = 0; i < k; i++)
+        {
+            float cluster_margin = fabs((float)counts[i] - avg) / avg * 100.0;
+            if (cluster_margin < min_margin)
+            {
+                min_margin = cluster_margin;
+            }
+        }
+        result->margin_kept = (int)(100.0 - min_margin);
+    }
+
+    free(counts);
+    if(result != NULL) result->res = 'S';
+    return 1; // Zrównoważone
 }

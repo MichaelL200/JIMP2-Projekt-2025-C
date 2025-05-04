@@ -74,9 +74,10 @@ int main(int argc, char *argv[])
     print_clusters(clusters, input.v_count, config.parts);
     free(eigenvectors);
     free(eigenvalues);
+    Result *result = malloc(sizeof(Result));
 
     // Sprawdzenie równowagi klastrów
-    if(check_cluster_balance(clusters, input.v_count, config.parts, config.margin))
+    if(check_cluster_balance(clusters, input.v_count, config.parts, config.margin, result))
     {
         printf("\n\tPodział spektralny zakończony sukcesem!\n");
     }
@@ -86,11 +87,13 @@ int main(int argc, char *argv[])
     }
 
     // Modyfikacja grafu w oparciu o podział
-    int removed_edges = modify_graph(&input, clusters);
+    result->cut_count = modify_graph(&input, clusters);
+    print_result(result);
 
     // Wypisanie klastrów do pliku
     //write_output(config.output_file, &input, clusters, input.v_count, config.format);
 
+    free(result);
     free(clusters);
     free_csr_matrix(L);
     free_input(&input);

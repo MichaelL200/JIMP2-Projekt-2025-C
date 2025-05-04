@@ -46,11 +46,10 @@ int modify_graph(Input *i, int* clusters)
 
             g_id--; // Cofanie indeksu, by nie pominąć następnego elementu
         }
-        //printf("\ti->vertices_groups[%d] = %d\n", g_id, i->vertices_groups[g_id]);
     }
 
     // Usunięcie ostatnich wierzchołków, jeśli są ostatnimi w vertices_ptrs
-    while (i->g_count > 0 && i->p_count > 0 && i->vertices_ptrs[i->p_count - 1] == i->g_count - 1)
+    while (0 < (int)i->g_count && 0 < (int)i->p_count && i->vertices_ptrs[i->p_count - 1] == (int)i->g_count - 1)
     {
         i->g_count--;
         i->p_count--;
@@ -65,6 +64,16 @@ int modify_graph(Input *i, int* clusters)
     printv(i->vertices_ptrs, i->p_count, 10);
 
     return removed_edges;
+}
+
+// Wypisanie rezultatu
+void print_result(Result *result)
+{
+    printf("\n\tRezultat:\n");
+    printf("\t\tWynik: %c\n", result->res);
+    printf("\t\tPodział: %d\n", result->parts);
+    printf("\t\tLiczba usuniętych krawędzi: %d\n", result->cut_count);
+    printf("\t\tZachowany margines: %d\n", result->margin_kept);
 }
 
 // Wypisanie wyników do pliku
