@@ -94,7 +94,10 @@ void print_result(Result *result)
     printf("\t\tWynik: %c\n", result->res);
     printf("\t\tPodział: %d\n", result->parts);
     printf("\t\tLiczba usuniętych krawędzi: %d\n", result->cut_count);
-    printf("\t\tZachowany margines: %d%%\n", result->margin_kept); // Dodanie symbolu procenta
+    printf("\t\tZachowany margines: %d%%\n", result->margin_kept); // Zawsze wyświetl margines
+    if (result->res == 'F') {
+        printf("\t\t(Uwaga: Margines został przekroczony)\n"); // Dodaj ostrzeżenie, jeśli margines przekroczony
+    }
 }
 
 // Wypisanie wyników do pliku

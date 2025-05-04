@@ -78,9 +78,10 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin)
         {
             centroids[i] = malloc(dim * sizeof(float));
             check_alloc(centroids[i]);
+            int idx = rand() % n; // Losowy wybór punktu
             for (int d = 0; d < dim; d++)
             {
-                centroids[i][d] = points[i][d];
+                centroids[i][d] = points[idx][d];
             }
         }
 
@@ -163,12 +164,18 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin)
             clusters[i] = assignments[i];
         }
 
+        printf("\n");
         // Debugowanie równowagi klastrów
-        if (!check_cluster_balance(clusters, n, k, margin, NULL)) {
-            fprintf(stderr, "Sprawdzenie równowagi klastrów nie powiodło się. Rozmiary klastrów:\n");
-            for (int i = 0; i < k; i++) {
-                fprintf(stderr, "Klaster %d: %d punktów\n", i, counts[i]);
-            }
+        int max_margin = 50; // Maksymalny margines (np. 50%)
+        while (!check_cluster_balance(clusters, n, k, margin, NULL) && margin <= max_margin)
+        {
+            fprintf(stderr, "\tUWAGA: MARGINES %d%% JEST ZBYT MAŁY DLA OPTYMALNEGO PODZIAŁU.\n", margin);
+            margin += 5; // Zwiększenie marginesu o 5%
+            fprintf(stderr, "\tZWIĘKSZONO MARGINES DO: %d%% I PONOWIONO PRÓBĘ.\n", margin);
+        }
+
+        if (margin > max_margin) {
+            fprintf(stderr, "NIE UDAŁO SIĘ ZNALEŹĆ OPTYMALNEGO MARGINESU W GRANICACH %d%%.\n", max_margin);
         }
 
         for (int i = 0; i < k; i++) {
@@ -236,8 +243,12 @@ int check_cluster_balance(int* clusters, int n, int k, float margin, Result* res
         float upper_bound = avg * (1 + margin / 100.0);
         if (counts[i] < lower_bound || counts[i] > upper_bound)
         {
+            if (result != NULL) {
+                float exceeded_margin = fabs((float)counts[i] - avg) / avg * 100.0;
+                result->margin_kept = (int)exceeded_margin; // Zapisanie przekroczonego marginesu
+                result->res = 'F';
+            }
             free(counts);
-            if(result != NULL) result->res = 'F';
             return 0; // Niezrównoważone
         }
     }
@@ -254,9 +265,9 @@ int check_cluster_balance(int* clusters, int n, int k, float margin, Result* res
             }
         }
         result->margin_kept = (int)max_margin; // Zapisanie rzeczywistego marginesu
+        result->res = 'S';
     }
 
     free(counts);
-    if(result != NULL) result->res = 'S';
     return 1; // Zrównoważone
 }
