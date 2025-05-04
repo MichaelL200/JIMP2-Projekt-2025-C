@@ -22,6 +22,6 @@ void print_result(Result *result);
 void write_output(char *output_file, Input *i, Result *r, char *format);
 
 // Wczytanie wyników z pliku wyjściowego (test)
-void bin_read(const char *filename);
+void bin_read(const char *filename, int n);
 
 #endif // OUTPUT_H

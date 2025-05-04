@@ -190,20 +190,27 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin)
 // Wypisywanie klastrów (części)
 void print_clusters(int* clusters, int n, int k)
 {
-    printf("\tKlastery (części):\n");
-    for (int i = 0; i < k; i++)
+    if(n < max_print_size)
     {
-        int count = 0;
-        printf("\t\tKlaster %d: ", i);
-        for (int j = 0; j < n; j++)
+        printf("\tKlastery (części):\n");
+        for (int i = 0; i < k; i++)
         {
-            if (clusters[j] == i)
+            int count = 0;
+            printf("\t\tKlaster %d: ", i);
+            for (int j = 0; j < n; j++)
             {
-                printf("%d ", j);
-                count++;
+                if (clusters[j] == i)
+                {
+                    printf("%d ", j);
+                    count++;
+                }
             }
+            printf("\n\t\t\t(%d)\n", count);
         }
-        printf("\n\t\t\t(%d)\n", count);
+    }
+    else
+    {
+        printf("\n\tGraf jest zbyt duży by wypisać klastry.\n");
     }
 }
 

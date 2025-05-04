@@ -26,14 +26,19 @@ int modify_graph(Input *i, int* clusters)
         {
             current_vertex = i->vertices_groups[g_id];
             current_cluster = clusters[current_vertex];
-            printf("\tvertex_%d:\n", g_id);
+            if(i->v_count < max_print_size)
+            {
+                printf("\tvertex_%d:\n", g_id);
+            }
             p_id++;
         }
         else if (current_cluster != clusters[i->vertices_groups[g_id]])
         {
             removed_edges++;
-            printf("\t\tUsuwam krawędź: %d -> %d\n", current_vertex, i->vertices_groups[g_id]);
-
+            if(i->v_count < max_print_size)
+            {
+                printf("\t\tUsuwam krawędź: %d -> %d\n", current_vertex, i->vertices_groups[g_id]);
+            }
             // Usunięcie krawędzi z vertices_groups
             for (int j = g_id; j < (int)i->g_count - 1; j++)
             {
@@ -51,6 +56,12 @@ int modify_graph(Input *i, int* clusters)
         }
     }
 
+    if(i->v_count > max_print_size)
+    {
+        printf("\tGraf jest zbyt duży by wypisać wierzchołki i usunięte krawędzie.\n");
+    }
+
+
     // Usunięcie ostatnich wierzchołków, jeśli są ostatnimi w vertices_ptrs
     while (0 < (int)i->g_count && 0 < (int)i->p_count && i->vertices_ptrs[i->p_count - 1] == (int)i->g_count - 1)
     {
@@ -61,10 +72,17 @@ int modify_graph(Input *i, int* clusters)
     printf("\n");
     printf("\tUsunięto %d krawędzi\n", removed_edges);
 
-    printf("\n\tGrupy połączeń:\n");
-    printv(i->vertices_groups, i->g_count, 10);
-    printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");
-    printv(i->vertices_ptrs, i->p_count, 10);
+    if (i->v_count < max_print_size)
+    {
+        printf("\n\tGrupy połączeń:\n");
+        printv(i->vertices_groups, i->g_count, 10);
+        printf("\n\tWskaźniki na pierwsze wierzchołki w grupach:\n");
+        printv(i->vertices_ptrs, i->p_count, 10);
+    }
+    else
+    {
+        printf("\n\tGraf jest zbyt duży by wypisać grupy połączeń i wskaźniki po usunięciu krawędzi.\n");
+    }
 
     return removed_edges;
 }
@@ -196,7 +214,7 @@ void write_output(char *output_file, Input *i, Result *r, char *format)
 }
 
 // Wczytanie wyników z pliku wyjściowego (test)
-void bin_read(const char *filename)
+void bin_read(const char *filename, int n)
 {
     // Utwórz lokalne zmienne
     Result result;
@@ -254,14 +272,21 @@ void bin_read(const char *filename)
     printf("\t\tZachowany margines: %d%%\n", result.margin_kept);
 
     printf("\tLimit wierzchołków w wierszu: %d\n", input.max_vertices);
-    printf("\tIndeksy wierszy:\n");
-    printv(input.row_indices, input.r_count, 10);
-    printf("\tPierwsze wierzchołki w wierszach:\n");
-    printv(input.first_vertices, input.f_count, 10);
-    printf("\tGrupy połączeń:\n");
-    printv(input.vertices_groups, input.g_count, 10);
-    printf("\tWskaźniki na pierwsze wierzchołki w grupach:\n");
-    printv(input.vertices_ptrs, input.p_count, 10);
+    if(n < max_print_size)
+    {
+        printf("\tIndeksy wierszy:\n");
+        printv(input.row_indices, input.r_count, 10);
+        printf("\tPierwsze wierzchołki w wierszach:\n");
+        printv(input.first_vertices, input.f_count, 10);
+        printf("\tGrupy połączeń:\n");
+        printv(input.vertices_groups, input.g_count, 10);
+        printf("\tWskaźniki na pierwsze wierzchołki w grupach:\n");
+        printv(input.vertices_ptrs, input.p_count, 10);
+    }
+    else
+    {
+        printf("\tGraf jest zbyt duży by wypisać tablice z pliku binarnego.\n");
+    }
 
     // Zwolnij zaalokowaną pamięć
     free(input.row_indices);

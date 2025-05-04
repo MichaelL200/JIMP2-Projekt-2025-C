@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     // Odczytanie wypisanego pliku wyjściowego w formie binarnej
     char bin_file_path[256];
     snprintf(bin_file_path, sizeof(bin_file_path), "output/%s", config.output_file);
-    bin_read(bin_file_path);
+    bin_read(bin_file_path, input.v_count);
 
     free(result);
     free(clusters);

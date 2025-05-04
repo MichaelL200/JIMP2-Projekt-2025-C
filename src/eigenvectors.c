@@ -48,9 +48,9 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     char bmat = 'I';
     char which[] = "SM"; // Obliczanie najmniejszych wartości własnych
     int nev = p;
-    float tol = 1e-3; // Zwiększono tolerancję z 1e-5 do 1e-3 dla szybszej zbieżności
+    float tol = 1e-6; // Zmniejszono tolerancję dla jeszcze większej dokładności
     float* resid = malloc(n * sizeof(float));
-    int ncv = (2 * nev < n) ? 2 * nev : n;
+    int ncv = (4 * nev < n) ? 4 * nev : n; // Zwiększono liczbę wektorów Arnoldiego
     if (ncv > n) ncv = n;
 
     float* V = malloc(n * ncv * sizeof(float));
@@ -61,40 +61,58 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     int ipntr[14] = {0};
 
     iparam[0] = 1; // Dokładne przesunięcia
-    iparam[2] = 1000; // Zmniejszono maksymalną liczbę iteracji z 5000 do 1000
+    iparam[2] = 10000; // Zwiększono maksymalną liczbę iteracji
     iparam[6] = 1; // Tryb 1: standardowy problem wartości własnych
 
-    while (1)
+    int retries = 3; // Liczba prób w przypadku niepowodzenia
+    while (retries > 0)
     {
-        ssaupd_(&ido, &bmat, &n, which, &nev, &tol, resid,
-                &ncv, V, &n, iparam, ipntr, workd, workl,
-                &lworkl, &info);
+        while (1)
+        {
+            ssaupd_(&ido, &bmat, &n, which, &nev, &tol, resid,
+                    &ncv, V, &n, iparam, ipntr, workd, workl,
+                    &lworkl, &info);
 
-        if (info < 0) {
-            fprintf(stderr, "Błąd ARPACK ssaupd_: %d. Sprawdź parametry wejściowe.\n", info);
-            free(resid); free(V); free(workd); free(workl);
-            exit(EXIT_FAILURE);
+            if (info < 0) {
+                fprintf(stderr, "Błąd ARPACK ssaupd_: %d. Sprawdź parametry wejściowe.\n", info);
+                free(resid); free(V); free(workd); free(workl);
+                exit(EXIT_FAILURE);
+            }
+
+            if (ido == 99) break;
+
+            if (ido == -1 || ido == 1)
+            {
+                csr_matvec(graph, &workd[ipntr[0] - 1], &workd[ipntr[1] - 1], n);
+            }
+            else
+            {
+                fprintf(stderr, "Nieobsługiwany status ARPACK: %d\n", ido);
+                free(resid); free(V); free(workd); free(workl);
+                exit(1);
+            }
         }
 
-        if (ido == 99) break;
-
-        if (ido == -1 || ido == 1)
+        if (info == 0) break; // Sukces
+        if (info == 1)
         {
-            csr_matvec(graph, &workd[ipntr[0] - 1], &workd[ipntr[1] - 1], n);
+            fprintf(stderr, "Błąd ARPACK: Nieosiągnięta dokładność. Zmniejszanie tolerancji i ponowna próba...\n");
+            tol /= 10; // Zmniejsz tolerancję
+            retries--;
         }
         else
         {
-            fprintf(stderr, "Nieobsługiwany status ARPACK: %d\n", ido);
+            fprintf(stderr, "Błąd ARPACK: %d\n", info);
             free(resid); free(V); free(workd); free(workl);
             exit(1);
         }
     }
 
-    if (info != 0)
+    if (retries == 0)
     {
-        fprintf(stderr, "Błąd ARPACK: %d\n", info);
+        fprintf(stderr, "Nie udało się osiągnąć dokładności po kilku próbach.\n");
         free(resid); free(V); free(workd); free(workl);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     int* select = malloc(ncv * sizeof(int));
@@ -112,7 +130,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
 
     if (info == 1)
     {
-        fprintf(stderr, "Błąd ARPACK: Nieosiągnięta dokładność w obliczeniach wartości własnych.\n");
+        fprintf(stderr, "Błąd ARPACK: Nieosiągnięta dokładność w obliczeniach wartości własnych. Spróbuj zwiększyć ncv lub zmniejszyć tol.\n");
         free(select); free(D); free(V); free(workd); free(workl); free(resid);
         exit(EXIT_FAILURE);
     } else if (info != 0)
@@ -204,23 +222,30 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
 // Wypisanie par własnych
 void print_eigenpairs(float *eigenvalues, float *eigenvectors, int p, int n)
 {
-    printf("\n");
-    for(int i = 0; i < p; i++)
+    if(n < max_print_size)
     {
-        printf("\tPara %d: wartość własna = %.6f\n", i, eigenvalues[i]);
-        printf("\t  wektor własny[%d] = [", i);
-        for(int j = 0; j < n; j++)
+        printf("\n");
+        for(int i = 0; i < p; i++)
         {
-            float value = fabs(eigenvectors[i * n + j]) < 1e-6 ? 0.0f : eigenvectors[i * n + j];
-            if(j + 1 < n)
+            printf("\tPara %d: wartość własna = %.6f\n", i, eigenvalues[i]);
+            printf("\t  wektor własny[%d] = [", i);
+            for(int j = 0; j < n; j++)
             {
-                printf("%.6f, ", value);
+                float value = fabs(eigenvectors[i * n + j]) < 1e-6 ? 0.0f : eigenvectors[i * n + j];
+                if(j + 1 < n)
+                {
+                    printf("%.6f, ", value);
+                }
+                else
+                {
+                    printf("%.6f", value);
+                }
             }
-            else
-            {
-                printf("%.6f", value);
-            }
+            printf("]\n\n");
         }
-        printf("]\n\n");
+    }
+    else
+    {
+        printf("\n\tGraf jest zbyt duży by wypisać pary własne.\n");
     }
 }
