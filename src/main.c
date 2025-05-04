@@ -72,48 +72,27 @@ int main(int argc, char *argv[])
     // Klasteryzacja k-means
     int* clusters = clusterization(eigenvectors, input.v_count, config.parts, config.parts);
     print_clusters(clusters, input.v_count, config.parts);
-
-    free(eigenvalues);
     free(eigenvectors);
+    free(eigenvalues);
 
-    /*
-    // Inicjalizacja seeda randomizacji
-    srand(time(NULL));
-
-    // Iteracje podziału spektralnego
-    for(int attempts = 0; attempts < MAX_ATTEMPTS; attempts++)
+    // Sprawdzenie równowagi klastrów
+    if(check_cluster_balance(clusters, input.v_count, config.parts, config.margin))
     {
-        printf("\n\tPRÓBA %d PODZIAŁU SPEKTRALNEGO\n", attempts);
-
-        // Metoda Lanczosa
-        LanczosEigenV lev;
-        srand(time(NULL));
-        lanczos(L, &lev, input.v_count, input.v_count);
-        print_lanczos(&lev);
-
-        // Algorytm QR
-        qr_algorithm(&lev);
-        print_qr(&lev);
-        
-        // Sortowanie wartości i wektorów własnych rosnąco
-        EigenvalueIndex* eigenindex = sort_eigenvalues(&lev, config.parts);
-
-        // Algorytm klasteryzacji k-means
-        int* clusters = clusterization(&lev, eigenindex, input.v_count, config.parts);
-        free(eigenindex);
-        free_lev(&lev);
-        print_clusters(clusters, input.v_count);
-        if(check_cluster_balance(clusters, input.v_count, config.parts, config.margin))
-        {
-            break;
-        }
-        else
-        {
-            continue;
-        }
+        printf("\n\tPodział spektralny zakończony sukcesem!\n");
     }
-    */
-    
+    else
+    {
+        printf("\n\tPodział spektralny nie powiódł się! Margines został przekroczony.\n");
+        free(clusters);
+        free_csr_matrix(L);
+        free_input(&input);
+        return EXIT_FAILURE; // Exit with failure if balance check fails
+    }
+
+    // Wypisanie klastrów do pliku
+    //write_output(config.output_file, &input, clusters, input.v_count, config.format);
+
+    free(clusters);
     free_csr_matrix(L);
     free_input(&input);
 

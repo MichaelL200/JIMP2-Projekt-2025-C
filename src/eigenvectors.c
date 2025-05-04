@@ -46,7 +46,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     char bmat = 'I';
     char which[] = "SM"; // Compute smallest eigenvalues
     int nev = p;
-    float tol = 1e-6;
+    float tol = 1e-5; // Relax tolerance from 1e-6 to 1e-5
     float* resid = malloc(n * sizeof(float));
     int ncv = (2 * nev < n) ? 2 * nev : n;
     if (ncv > n) ncv = n;
@@ -59,7 +59,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     int ipntr[14] = {0};
 
     iparam[0] = 1; // Exact shifts
-    iparam[2] = 1000; // Max iterations
+    iparam[2] = 5000; // Increase max iterations from 1000 to 5000
     iparam[6] = 1; // Mode 1: standard eigenvalue problem
 
     while (1)
@@ -70,6 +70,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
 
         if (info < 0) {
             fprintf(stderr, "ARPACK ssaupd_ error: %d. Check input parameters.\n", info);
+            free(resid); free(V); free(workd); free(workl); // Free memory
             exit(EXIT_FAILURE);
         }
 
@@ -82,6 +83,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         else
         {
             fprintf(stderr, "Unsupported ARPACK status: %d\n", ido);
+            free(resid); free(V); free(workd); free(workl); // Free memory
             exit(1);
         }
     }
@@ -89,6 +91,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     if (info != 0)
     {
         fprintf(stderr, "ARPACK error: %d\n", info);
+        free(resid); free(V); free(workd); free(workl); // Free memory
         exit(1);
     }
 
@@ -107,7 +110,29 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
 
     if (info != 0) {
         fprintf(stderr, "ARPACK sseupd_ error: %d. Check eigenvector computation.\n", info);
+        free(select); free(D); free(V); free(workd); free(workl); free(resid); // Free memory
         exit(EXIT_FAILURE);
+    }
+
+    // Normalize eigenvectors
+    for (int i = 0; i < nev; i++) {
+        float norm = 0.0f;
+        for (int j = 0; j < n; j++) {
+            float value = V[j * nev + i];
+            norm += value * value;
+        }
+        norm = sqrtf(norm);
+        if (norm > 0) {
+            for (int j = 0; j < n; j++) {
+                V[j * nev + i] /= norm;
+            }
+        }
+    }
+
+    // Log eigenvalues for debugging
+    fprintf(stderr, "Computed eigenvalues:\n");
+    for (int i = 0; i < nev; i++) {
+        fprintf(stderr, "Eigenvalue %d: %.6f\n", i, D[i]);
     }
 
     *eigenvectors = malloc(n * nev * sizeof(float));

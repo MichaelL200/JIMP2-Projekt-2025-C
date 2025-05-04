@@ -3,37 +3,6 @@
 
 #include "mat_vec.h"
 
-/*
-// Struktura do przechowywania zmiennych potrzebnych do metody Lanczosa oraz do obliczenia przybliżeń wektorów własnych macierzy Laplace'a grafu
-typedef struct
-{
-    // rozmiar macierzy Laplace'a
-    int n;
-    // liczba iteracji
-    int m;
-    // baza ortonormalna V z wektorami v (baza przestrzeni Kryłowa)
-    float** V;
-    // macierz trójdiagonalna T
-    float* alpha;
-    float* beta;
-    // wartości własne macierzy T
-    float* theta;
-    // wektory własne macierzy T (macierz)
-    float* Y;
-    // przybliżone wektory własne macierzy L (macierz)
-    float* X;
-} LanczosEigenV;
-// Nazwy takie same jak na Wikipedii - Lanczos algorithm
-// https://en.wikipedia.org/wiki/Lanczos_algorithm
-
-// Tablica struktur zawierających wartość własną oraz jej indeks
-typedef struct 
-{
-    double value;
-    int index;
-} EigenvalueIndex;
-*/
-
 // Poprawione deklaracje w eigenvectors.h
 #pragma once
 extern void ssaupd_(int *ido, char *bmat, int *n, char *which,

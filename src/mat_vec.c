@@ -61,6 +61,13 @@ CSRMatrix_i* get_laplacian_matrix(Input* input)
     memset(csr->col_index, 0, total_nnz * sizeof(int)); // Initialize col_index to zero
     csr->row_ptr = malloc((n + 1) * sizeof(int));
 
+    if (!csr->values || !csr->col_index || !csr->row_ptr) {
+        fprintf(stderr, "Memory allocation failed in get_laplacian_matrix.\n");
+        free(csr->values); free(csr->col_index); free(csr->row_ptr); free(csr); // Free memory
+        free(degrees); free(nnz_per_row); // Free temporary arrays
+        return NULL;
+    }
+
     // Wypełnij row_ptr
     csr->row_ptr[0] = 0;
     for (int i = 0; i < n; i++)
@@ -128,7 +135,7 @@ CSRMatrix_i* get_laplacian_matrix(Input* input)
 
     free(degrees);
     free(nnz_per_row);
-    free(current_position);
+    free(current_position); // Ensure all temporary memory is freed
     
     return csr;
 }

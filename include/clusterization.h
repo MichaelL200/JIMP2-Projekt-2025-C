@@ -10,4 +10,7 @@ int* clusterization(float* eigenvectors, int n, int k, int dim);
 // Wypisywanie klastrów (części)
 void print_clusters(int* clusters, int n, int k);
 
+// Sprawdzenie równowagi klastrów
+int check_cluster_balance(int* clusters, int n, int k, float margin);
+
 #endif // CLUSTERIZATION_H
