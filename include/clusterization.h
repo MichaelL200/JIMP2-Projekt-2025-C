@@ -4,15 +4,10 @@
 #include "output.h"
 #include "eigenvectors.h"
 
-/*
-// Algorytm klasteryzacji k-means
-int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k);
+// Klasteryzacja k-means
+int* clusterization(float* eigenvectors, int n, int k, int dim);
 
-// Wypisanie części dla każdego wierzchołka (klastrów)
-void print_clusters(int* clusters, int n);
-
-// Sprawdzanie równowagi klastrów w zadanym marginesie procentowym
-int check_cluster_balance(int* clusters, int n, int k, int margin_percent);
-*/
+// Wypisywanie klastrów (części)
+void print_clusters(int* clusters, int n, int k);
 
 #endif // CLUSTERIZATION_H

@@ -3,6 +3,7 @@
 
 #include "mat_vec.h"
 
+/*
 // Struktura do przechowywania zmiennych potrzebnych do metody Lanczosa oraz do obliczenia przybliżeń wektorów własnych macierzy Laplace'a grafu
 typedef struct
 {
@@ -25,7 +26,6 @@ typedef struct
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
 
-/*
 // Tablica struktur zawierających wartość własną oraz jej indeks
 typedef struct 
 {

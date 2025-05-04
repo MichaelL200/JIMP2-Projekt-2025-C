@@ -14,22 +14,33 @@
 // Mnożenie macierzy CSR przez wektor
 void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n)
 {
-    #pragma omp parallel for schedule(dynamic, 50)
-    for (int i = 0; i < n; ++i)
+    #pragma omp parallel
     {
-        y[i] = 0.0;
-        int row_start = A->row_ptr[i];
-        int row_end = A->row_ptr[i + 1];
-        for (int j = row_start; j < row_end; ++j)
+        #pragma omp for schedule(dynamic, 50)
+        for (int i = 0; i < n; ++i)
         {
-            y[i] += A->values[j] * x[A->col_index[j]];
+            y[i] = 0.0;
+            int row_start = A->row_ptr[i];
+            int row_end = A->row_ptr[i + 1];
+            for (int j = row_start; j < row_end; ++j)
+            {
+                y[i] += A->values[j] * x[A->col_index[j]];
+            }
         }
+
+        // Dodanie bariery w celu poprawnego zakończenia wątków OpenMP
+        #pragma omp barrier
     }
 }
 
 // Obliczanie wektorów własnych
 void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenvectors, float** eigenvalues)
 {
+    if (n <= 0 || p <= 0 || p > n) {
+        fprintf(stderr, "Invalid input: n = %d, p = %d. Ensure n > 0 and 0 < p <= n.\n", n, p);
+        exit(EXIT_FAILURE);
+    }
+
     int ido = 0;
     int info = 0;
     char bmat = 'I';
@@ -56,6 +67,11 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         ssaupd_(&ido, &bmat, &n, which, &nev, &tol, resid,
                 &ncv, V, &n, iparam, ipntr, workd, workl,
                 &lworkl, &info);
+
+        if (info < 0) {
+            fprintf(stderr, "ARPACK ssaupd_ error: %d. Check input parameters.\n", info);
+            exit(EXIT_FAILURE);
+        }
 
         if (ido == 99) break;
 
@@ -88,6 +104,11 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     sseupd_(&rvec, "A", select, D, V, &n, &sigma, &bmat, &n, which,
             &nev, &tol, resid, &ncv, V, &n, iparam, ipntr,
             workd, workl, &lworkl, &info);
+
+    if (info != 0) {
+        fprintf(stderr, "ARPACK sseupd_ error: %d. Check eigenvector computation.\n", info);
+        exit(EXIT_FAILURE);
+    }
 
     *eigenvectors = malloc(n * nev * sizeof(float));
     check_alloc(*eigenvectors);
@@ -135,12 +156,19 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         }
     }
 
+    // Zwolnienie pamięci dla zmiennych tymczasowych
     free(select);
     free(V);
     free(workd);
     free(workl);
     free(D);
     free(resid);
+
+    // Dodanie bariery w celu poprawnego zakończenia wątków OpenMP
+    #pragma omp parallel
+    {
+        #pragma omp barrier
+    }
 }
 
 // Wypisanie par własnych

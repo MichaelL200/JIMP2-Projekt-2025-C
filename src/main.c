@@ -63,10 +63,15 @@ int main(int argc, char *argv[])
     // Wypisanie macierzy Laplace'a
     print_laplacian_matrix(L, input.v_count);
 
+    // Obliczanie par własnych
     float* eigenvectors;
     float* eigenvalues;
     compute_eigenvectors(L, input.v_count, config.parts, &eigenvectors, &eigenvalues);
     print_eigenpairs(eigenvalues, eigenvectors, config.parts, input.v_count);
+
+    // Klasteryzacja k-means
+    int* clusters = clusterization(eigenvectors, input.v_count, config.parts, config.parts);
+    print_clusters(clusters, input.v_count, config.parts);
 
     free(eigenvalues);
     free(eigenvectors);

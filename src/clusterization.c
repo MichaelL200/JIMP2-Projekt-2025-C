@@ -3,21 +3,21 @@
 #include <float.h>
 #include <stdio.h>
 #include <limits.h>
+#include <omp.h>
 
 #include "clusterization.h"
 #include "eigenvectors.h"
 #include "output.h"
 #include "utils.h"
 
-/*
-// Algorytm klasteryzacji k-means
-int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
+// Klasteryzacja k-means
+int* clusterization(float* eigenvectors, int n, int k, int dim)
 {
-    int dim = k - 1; // Liczba używanych wektorów własnych (pomijając pierwszy)
+    // Alokacja pamięci dla tablicy klastrów
     int* clusters = malloc(n * sizeof(int));
     check_alloc(clusters);
 
-    // Alokacja przestrzeni dla reprezentacji punktów w przestrzeni własnej
+    // Alokacja pamięci dla punktów w przestrzeni wektorów własnych
     float** points = malloc(n * sizeof(float*));
     check_alloc(points);
     for (int i = 0; i < n; i++)
@@ -26,12 +26,11 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
         check_alloc(points[i]);
         for (int d = 0; d < dim; d++)
         {
-            int eig_idx = eigvals[d + 1].index; // Pomijanie pierwszego wektora własnego
-            points[i][d] = l->X[i * l->m + eig_idx];
+            points[i][d] = eigenvectors[i * dim + d]; // Użycie wektorów własnych bezpośrednio
         }
     }
 
-    // Inicjalizacja centroidów jako pierwsze k punktów
+    // Inicjalizacja centroidów jako pierwszych k punktów
     float** centroids = malloc(k * sizeof(float*));
     check_alloc(centroids);
     for (int i = 0; i < k; i++)
@@ -44,17 +43,21 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
         }
     }
 
+    // Alokacja pamięci dla liczników i przypisań
     int* counts = malloc(k * sizeof(int));
     check_alloc(counts);
     int* assignments = malloc(n * sizeof(int));
     check_alloc(assignments);
     for (int i = 0; i < n; i++)
+    {
         assignments[i] = -1;
+    }
 
     int changed;
     do
     {
         changed = 0;
+
         // Przypisanie punktów do najbliższego centroidu
         #pragma omp parallel for schedule(static)
         for (int i = 0; i < n; i++)
@@ -86,7 +89,9 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
         for (int j = 0; j < k; j++)
         {
             for (int d = 0; d < dim; d++)
+            {
                 centroids[j][d] = 0.0;
+            }
             counts[j] = 0;
         }
         #pragma omp parallel for reduction(+:counts[:k])
@@ -111,7 +116,7 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
         }
     } while (changed);
 
-    // Przypisanie wyników do wektora klastrów
+    // Przypisanie wyników do tablicy klastrów
     for (int i = 0; i < n; i++)
     {
         clusters[i] = assignments[i];
@@ -125,7 +130,7 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
     free(points);
     for (int i = 0; i < k; i++)
     {
-            free(centroids[i]);
+        free(centroids[i]);
     }
     free(centroids);
     free(counts);
@@ -134,73 +139,22 @@ int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
     return clusters;
 }
 
-// Wypisanie części dla każdego wierzchołka (klastrów)
-void print_clusters(int* clusters, int n)
+// Wypisywanie klastrów (części)
+void print_clusters(int* clusters, int n, int k)
 {
-    if(n < 3 * max_print_size)
+    printf("\tKlastery (części):\n");
+    for (int i = 0; i < k; i++)
     {
-        printf("\n\tCzęści dla każdego wierzchołka:\n");
-        printv(clusters, n, 20);
-    }
-    else
-    {
-        printf("\n\tGraf jest zbyt duży, by wyświetlić części dla każego wierzchołka.\n");
+        int count = 0;
+        printf("\t\tKlaster %d: ", i);
+        for (int j = 0; j < n; j++)
+        {
+            if (clusters[j] == i)
+            {
+                printf("%d ", j);
+                count++;
+            }
+        }
+        printf("\n\t\t\t(%d)\n", count);
     }
 }
-
-// Sprawdzanie równowagi klastrów w zadanym marginesie procentowym
-int check_cluster_balance(int* clusters, int n, int k, int margin)
-{
-    int* cluster_sizes = calloc(k, sizeof(int));
-    check_alloc(cluster_sizes);
-
-    // Zliczanie liczby wierzchołków w każdym klastrze
-    for (int i = 0; i < n; i++)
-    {
-        int cluster_id = clusters[i];
-        if (cluster_id < 0 || cluster_id >= k)
-        {
-            fprintf(stderr, "Nieprawidłowy identyfikator klastra: %d\n", cluster_id);
-            free(cluster_sizes);
-            return 0;
-        }
-        cluster_sizes[cluster_id]++;
-    }
-    free(clusters);
-
-    // Wypisanie rozmiarów klastrów (części)
-    printf("\n\tRozmiary części (klastrów):\n");
-    for(int i = 0; i < k; i++)
-    {
-        printf("\t\tCzęść %d: %d\n", i, cluster_sizes[i]);
-    }
-
-    // Sprawdzanie najmniejszego i największego klastra (części)
-    int min_cluster = n;
-    int max_cluster = 0;
-    for(int i = 0; i < k; i++)
-    {
-        if(cluster_sizes[i] < min_cluster)
-        {
-            min_cluster = cluster_sizes[i];
-        }
-        if(cluster_sizes[i] > max_cluster)
-        {
-            max_cluster = cluster_sizes[i];
-        }
-    }
-    free(cluster_sizes);
-    int margin_kept = (int)(100.0 * ((double)(max_cluster - min_cluster) / min_cluster));
-
-    // Sprawdzanie marginesu
-    if( margin_kept < margin)
-    {
-        return 1;
-    }
-    else
-    {
-        printf("\tMargines nie został spełniony.\n");
-        return 0;
-    }
-}
-*/
