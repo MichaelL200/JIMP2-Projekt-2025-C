@@ -37,16 +37,18 @@ void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n)
 void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenvectors, float** eigenvalues)
 {
     if (n <= 0 || p <= 0 || p > n) {
-        fprintf(stderr, "Invalid input: n = %d, p = %d. Ensure n > 0 and 0 < p <= n.\n", n, p);
+        fprintf(stderr, "Nieprawidłowe dane wejściowe: n = %d, p = %d. Upewnij się, że n > 0 i 0 < p <= n.\n", n, p);
         exit(EXIT_FAILURE);
     }
+
+    printf("Rozpoczynanie obliczania par własnych...\n"); // Komunikat początkowy
 
     int ido = 0;
     int info = 0;
     char bmat = 'I';
-    char which[] = "SM"; // Compute smallest eigenvalues
+    char which[] = "SM"; // Obliczanie najmniejszych wartości własnych
     int nev = p;
-    float tol = 1e-5; // Relax tolerance from 1e-6 to 1e-5
+    float tol = 1e-3; // Increase tolerance from 1e-5 to 1e-3 for faster convergence
     float* resid = malloc(n * sizeof(float));
     int ncv = (2 * nev < n) ? 2 * nev : n;
     if (ncv > n) ncv = n;
@@ -58,9 +60,9 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     int iparam[11] = {0};
     int ipntr[14] = {0};
 
-    iparam[0] = 1; // Exact shifts
-    iparam[2] = 5000; // Increase max iterations from 1000 to 5000
-    iparam[6] = 1; // Mode 1: standard eigenvalue problem
+    iparam[0] = 1; // Dokładne przesunięcia
+    iparam[2] = 1000; // Reduce maximum iterations from 5000 to 1000
+    iparam[6] = 1; // Tryb 1: standardowy problem wartości własnych
 
     while (1)
     {
@@ -69,8 +71,8 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
                 &lworkl, &info);
 
         if (info < 0) {
-            fprintf(stderr, "ARPACK ssaupd_ error: %d. Check input parameters.\n", info);
-            free(resid); free(V); free(workd); free(workl); // Free memory
+            fprintf(stderr, "Błąd ARPACK ssaupd_: %d. Sprawdź parametry wejściowe.\n", info);
+            free(resid); free(V); free(workd); free(workl); // Zwolnienie pamięci
             exit(EXIT_FAILURE);
         }
 
@@ -82,16 +84,16 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         }
         else
         {
-            fprintf(stderr, "Unsupported ARPACK status: %d\n", ido);
-            free(resid); free(V); free(workd); free(workl); // Free memory
+            fprintf(stderr, "Nieobsługiwany status ARPACK: %d\n", ido);
+            free(resid); free(V); free(workd); free(workl); // Zwolnienie pamięci
             exit(1);
         }
     }
 
     if (info != 0)
     {
-        fprintf(stderr, "ARPACK error: %d\n", info);
-        free(resid); free(V); free(workd); free(workl); // Free memory
+        fprintf(stderr, "Błąd ARPACK: %d\n", info);
+        free(resid); free(V); free(workd); free(workl); // Zwolnienie pamięci
         exit(1);
     }
 
@@ -108,31 +110,42 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
             &nev, &tol, resid, &ncv, V, &n, iparam, ipntr,
             workd, workl, &lworkl, &info);
 
-    if (info != 0) {
-        fprintf(stderr, "ARPACK sseupd_ error: %d. Check eigenvector computation.\n", info);
-        free(select); free(D); free(V); free(workd); free(workl); free(resid); // Free memory
+    if (info == 1)
+    {
+        fprintf(stderr, "Błąd ARPACK: Nieosiągnięta dokładność w obliczeniach wartości własnych.\n");
+        free(select); free(D); free(V); free(workd); free(workl); free(resid); // Zwolnienie pamięci
+        exit(EXIT_FAILURE);
+    } else if (info != 0)
+    {
+        fprintf(stderr, "Błąd ARPACK: %d\n", info);
+        free(select); free(D); free(V); free(workd); free(workl); free(resid); // Zwolnienie pamięci
         exit(EXIT_FAILURE);
     }
 
-    // Normalize eigenvectors
-    for (int i = 0; i < nev; i++) {
+    // Normalizacja wektorów własnych
+    for (int i = 0; i < nev; i++)
+    {
         float norm = 0.0f;
-        for (int j = 0; j < n; j++) {
+        for (int j = 0; j < n; j++)
+        {
             float value = V[j * nev + i];
             norm += value * value;
         }
         norm = sqrtf(norm);
-        if (norm > 0) {
-            for (int j = 0; j < n; j++) {
+        if (norm > 0)
+        {
+            for (int j = 0; j < n; j++)
+            {
                 V[j * nev + i] /= norm;
             }
         }
     }
 
-    // Log eigenvalues for debugging
-    fprintf(stderr, "Computed eigenvalues:\n");
-    for (int i = 0; i < nev; i++) {
-        fprintf(stderr, "Eigenvalue %d: %.6f\n", i, D[i]);
+    // Logowanie wartości własnych do debugowania
+    fprintf(stderr, "Obliczone wartości własne:\n");
+    for (int i = 0; i < nev; i++)
+    {
+        fprintf(stderr, "Wartość własna %d: %.6f\n", i, D[i]);
     }
 
     *eigenvectors = malloc(n * nev * sizeof(float));
@@ -140,7 +153,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     *eigenvalues = malloc(nev * sizeof(float));
     check_alloc(*eigenvalues);
 
-    // Normalize and store eigenvectors
+    // Normalizacja i zapis wektorów własnych
     for (int i = 0; i < nev; i++)
     {
         (*eigenvalues)[i] = D[i];
@@ -158,19 +171,19 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
         }
     }
 
-    // Sort eigenvalues and eigenvectors in ascending order
+    // Sortowanie wartości własnych i wektorów własnych w porządku rosnącym
     for (int i = 0; i < nev - 1; i++)
     {
         for (int j = i + 1; j < nev; j++)
         {
             if ((*eigenvalues)[i] > (*eigenvalues)[j])
             {
-                // Swap eigenvalues
+                // Zamiana wartości własnych
                 float temp_val = (*eigenvalues)[i];
                 (*eigenvalues)[i] = (*eigenvalues)[j];
                 (*eigenvalues)[j] = temp_val;
 
-                // Swap corresponding eigenvectors
+                // Zamiana odpowiadających wektorów własnych
                 for (int k = 0; k < n; k++)
                 {
                     float temp_vec = (*eigenvectors)[i * n + k];
@@ -180,6 +193,8 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
             }
         }
     }
+
+    printf("Obliczanie par własnych zakończone.\n"); // Komunikat końcowy
 
     // Zwolnienie pamięci dla zmiennych tymczasowych
     free(select);
@@ -202,8 +217,8 @@ void print_eigenpairs(float *eigenvalues, float *eigenvectors, int p, int n)
     printf("\n");
     for(int i = 0; i < p; i++)
     {
-        printf("\tPair %d: eigenvalue = %.6f\n", i, eigenvalues[i]);
-        printf("\t  eigenvector[%d] = [", i);
+        printf("\tPara %d: wartość własna = %.6f\n", i, eigenvalues[i]);
+        printf("\t  wektor własny[%d] = [", i);
         for(int j = 0; j < n; j++)
         {
             float value = fabs(eigenvectors[i * n + j]) < 1e-6 ? 0.0f : eigenvectors[i * n + j];

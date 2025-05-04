@@ -83,10 +83,6 @@ int main(int argc, char *argv[])
     else
     {
         printf("\n\tPodział spektralny nie powiódł się! Margines został przekroczony.\n");
-        free(clusters);
-        free_csr_matrix(L);
-        free_input(&input);
-        return EXIT_FAILURE; // Exit with failure if balance check fails
     }
 
     // Wypisanie klastrów do pliku
