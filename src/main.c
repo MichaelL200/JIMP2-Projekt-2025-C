@@ -91,7 +91,12 @@ int main(int argc, char *argv[])
     print_result(result);
 
     // Wypisanie klastrów do pliku
-    write_output(config.output_file, &input, result, clusters, input.v_count, config.format);
+    write_output(config.output_file, &input, result, config.format);
+
+    // Odczytanie wypisanego pliku wyjściowego w formie binarnej
+    char bin_file_path[256];
+    snprintf(bin_file_path, sizeof(bin_file_path), "output/%s", config.output_file);
+    bin_read(bin_file_path);
 
     free(result);
     free(clusters);

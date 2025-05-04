@@ -133,7 +133,7 @@ void check_input_data(int parts, int count, int *margin)
     {
         fprintf(stderr, "Ostrzeżenie: Podany margines (%d%%) jest zbyt mały.\n", *margin);
         *margin = min_margin;
-        fprintf(stderr, "Ustawiono margines na minimalny możliwy: %d%%.\n", *margin);
+        fprintf(stderr, "Ustawiono margines na: %d%%.\n", *margin);
     }
 }
 

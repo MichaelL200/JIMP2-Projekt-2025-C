@@ -76,11 +76,11 @@ void print_result(Result *result)
     printf("\t\tWynik: %c\n", result->res);
     printf("\t\tPodział: %d\n", result->parts);
     printf("\t\tLiczba usuniętych krawędzi: %d\n", result->cut_count);
-    printf("\t\tZachowany margines: %d%%\n", result->margin_kept); // Add percentage symbol
+    printf("\t\tZachowany margines: %d%%\n", result->margin_kept); // Dodanie symbolu procenta
 }
 
 // Wypisanie wyników do pliku
-void write_output(char *output_file, Input *i, Result *r, int *A, int n, char *format)
+void write_output(char *output_file, Input *i, Result *r, char *format)
 {
     // Upewnij się, że katalog output/ istnieje
     struct stat st = {0};
@@ -165,23 +165,23 @@ void write_output(char *output_file, Input *i, Result *r, int *A, int n, char *f
         fwrite(&r->cut_count, sizeof(int), 1, file);
         fwrite(&r->margin_kept, sizeof(int), 1, file);
 
-        // Write max_vertices
+        // Zapisz max_vertices
         fwrite(&i->max_vertices, sizeof(int), 1, file);
 
-        // Write row_indices
-        fwrite(&i->r_count, sizeof(int), 1, file); // Length of row_indices
+        // Zapisz row_indices
+        fwrite(&i->r_count, sizeof(int), 1, file); // Długość row_indices
         fwrite(i->row_indices, sizeof(int), i->r_count, file);
 
-        // Write first_vertices
-        fwrite(&i->f_count, sizeof(int), 1, file); // Length of first_vertices
+        // Zapisz first_vertices
+        fwrite(&i->f_count, sizeof(int), 1, file); // Długość first_vertices
         fwrite(i->first_vertices, sizeof(int), i->f_count, file);
 
-        // Write vertices_groups
-        fwrite(&i->g_count, sizeof(size_t), 1, file); // Length of vertices_groups
+        // Zapisz vertices_groups
+        fwrite(&i->g_count, sizeof(size_t), 1, file); // Długość vertices_groups
         fwrite(i->vertices_groups, sizeof(int), i->g_count, file);
 
-        // Write vertices_ptrs
-        fwrite(&i->p_count, sizeof(size_t), 1, file); // Length of vertices_ptrs
+        // Zapisz vertices_ptrs
+        fwrite(&i->p_count, sizeof(size_t), 1, file); // Długość vertices_ptrs
         fwrite(i->vertices_ptrs, sizeof(int), i->p_count, file);
     }
     else
@@ -193,4 +193,79 @@ void write_output(char *output_file, Input *i, Result *r, int *A, int n, char *f
     printf("\n\tWyniki zapisano do pliku: %s\n", full_path);
 
     fclose(file);
+}
+
+// Wczytanie wyników z pliku wyjściowego (test)
+void bin_read(const char *filename)
+{
+    // Utwórz lokalne zmienne
+    Result result;
+    Input input = {NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, 0, 0};
+
+    const char *ext = strrchr(filename, '.');
+    if (!ext || strcmp(ext, ".bin") != 0)
+    {
+        return;
+    }
+
+    FILE *file = fopen(filename, "rb");
+    if (!file)
+    {
+        fprintf(stderr, "Nie można otworzyć pliku do odczytu: %s\n", filename);
+        perror("Szczegóły błędu");
+        return;
+    }
+
+    // Odczytaj dane z pliku
+    fread(&result.res, sizeof(char), 1, file);
+    fread(&result.parts, sizeof(int), 1, file);
+    fread(&result.cut_count, sizeof(int), 1, file);
+    fread(&result.margin_kept, sizeof(int), 1, file);
+
+    fread(&input.max_vertices, sizeof(int), 1, file);
+
+    fread(&input.r_count, sizeof(int), 1, file);
+    input.row_indices = malloc(input.r_count * sizeof(int));
+    check_alloc(input.row_indices);
+    fread(input.row_indices, sizeof(int), input.r_count, file);
+
+    fread(&input.f_count, sizeof(int), 1, file);
+    input.first_vertices = malloc(input.f_count * sizeof(int));
+    check_alloc(input.first_vertices);
+    fread(input.first_vertices, sizeof(int), input.f_count, file);
+
+    fread(&input.g_count, sizeof(size_t), 1, file);
+    input.vertices_groups = malloc(input.g_count * sizeof(int));
+    check_alloc(input.vertices_groups);
+    fread(input.vertices_groups, sizeof(int), input.g_count, file);
+
+    fread(&input.p_count, sizeof(size_t), 1, file);
+    input.vertices_ptrs = malloc(input.p_count * sizeof(int));
+    check_alloc(input.vertices_ptrs);
+    fread(input.vertices_ptrs, sizeof(int), input.p_count, file);
+
+    fclose(file);
+
+    // Wyświetl dane wejściowe
+    printf("\n\tDane zapisane w formacie binarnym:\n");
+    printf("\t\tWynik: %c\n", result.res);
+    printf("\t\tPodział: %d\n", result.parts);
+    printf("\t\tLiczba usuniętych krawędzi: %d\n", result.cut_count);
+    printf("\t\tZachowany margines: %d%%\n", result.margin_kept);
+
+    printf("\tLimit wierzchołków w wierszu: %d\n", input.max_vertices);
+    printf("\tIndeksy wierszy:\n");
+    printv(input.row_indices, input.r_count, 10);
+    printf("\tPierwsze wierzchołki w wierszach:\n");
+    printv(input.first_vertices, input.f_count, 10);
+    printf("\tGrupy połączeń:\n");
+    printv(input.vertices_groups, input.g_count, 10);
+    printf("\tWskaźniki na pierwsze wierzchołki w grupach:\n");
+    printv(input.vertices_ptrs, input.p_count, 10);
+
+    // Zwolnij zaalokowaną pamięć
+    free(input.row_indices);
+    free(input.first_vertices);
+    free(input.vertices_groups);
+    free(input.vertices_ptrs);
 }
