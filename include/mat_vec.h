@@ -26,7 +26,7 @@ void printv(int *v, int n, int n_row);
 CSRMatrix_i* get_laplacian_matrix(Input* input);
 
 // Wypisywanie macierzy CSR
-void print_csr_matrix(CSRMatrix_i* csr, int n);
+void print_csr_matrix(const CSRMatrix_i* csr, int n);
 
 // Wypisywanie macierzy Laplace'a
 void print_laplacian_matrix(CSRMatrix_i* L, int n);

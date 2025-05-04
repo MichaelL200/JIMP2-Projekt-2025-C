@@ -33,7 +33,7 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     int ido = 0;
     int info = 0;
     char bmat = 'I';
-    char which[] = "SM";
+    char which[] = "LM";
     int nev = p;
     float tol = 1e-6;
     float* resid = malloc(n * sizeof(float));
@@ -51,24 +51,22 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     iparam[2] = 1000;
     iparam[6] = 1;
 
-    while(1)
-    {
+    while(1) {
+        // Poprawne wywołanie bez sigma
         ssaupd_(&ido, &bmat, &n, which, &nev, &tol, resid,
                &ncv, V, &n, iparam, ipntr, workd, workl,
                &lworkl, &info);
 
         if(ido == 99) break;
         
-        if(ido == -1 || ido == 1)
-        {
+        if(ido == -1 || ido == 1) {
             csr_matvec(graph, &workd[ipntr[0]-1], &workd[ipntr[1]-1], n);
-        }
-        else
-        {
+        } else {
             fprintf(stderr, "Nieobsługiwany status ARPACK: %d\n", ido);
             exit(1);
         }
     }
+
 
     if(info != 0)
     {
@@ -77,17 +75,22 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     }
 
     int* select = malloc(ncv * sizeof(int));
-    if(!select) { perror("malloc select"); exit(1); }
-    float sigma = 0.0f;
+    memset(select, 0, ncv * sizeof(int));
+    check_alloc(select);
 
     int rvec = 1;
     float* D = malloc(nev * sizeof(float));
+    check_alloc(D);
+    float sigma = 0.0f;
+    
     sseupd_(&rvec, "A", select, D, V, &n, &sigma, &bmat, &n, which,
            &nev, &tol, resid, &ncv, V, &n, iparam, ipntr,
            workd, workl, &lworkl, &info);
 
     *eigenvectors = malloc(n * nev * sizeof(float));
+    check_alloc(eigenvectors);
     *eigenvalues = malloc(nev * sizeof(float));
+    check_alloc(eigenvectors);
     
     #pragma omp parallel for
     for(int i=0; i<nev; i++)
@@ -103,10 +106,30 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     free(V);
     free(workd);
     free(workl);
-    // free(iparam);   // USUNIĘTE
-    // free(ipntr);    // USUNIĘTE
     free(D);
     free(resid);
+}
+
+// Wypisanie par własnych
+void print_eigenpairs(float *eigenvalues, float *eigenvectors, int p, int n)
+{
+    for(int i = 0; i < p; i++)
+    {
+        printf("Part %d: eigenvalue = %.6f\n", i, eigenvalues[i]);
+        printf("  eigenvector[%d] = [", i);
+        for(int j = 0; j < n; j++)
+        {
+            if(j + 1 < n)
+            {
+                printf("%.6f, ", eigenvectors[i * n + j]);
+            }
+            else
+            {
+                printf("%.6f", eigenvectors[i * n + j]);
+            }
+        }
+        printf("]\n\n");
+    }
 }
 
 /*
@@ -387,7 +410,7 @@ void print_qr(const LanczosEigenV* l)
         printf("\n\tGraf jest zbyt duży, aby wyświetlić wynik algorytmu QR.\n");
     }
 }
-*/
+
 
 // Funkcja porównująca
 int compare_eigenvalues(const void* a, const void* b)
@@ -456,3 +479,4 @@ void free_lev(LanczosEigenV* l)
     if(l->Y) free(l->Y);
     if(l->X) free(l->X);
 }
+*/

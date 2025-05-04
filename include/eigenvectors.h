@@ -25,12 +25,14 @@ typedef struct
 // Nazwy takie same jak na Wikipedii - Lanczos algorithm
 // https://en.wikipedia.org/wiki/Lanczos_algorithm
 
+/*
 // Tablica struktur zawierających wartość własną oraz jej indeks
 typedef struct 
 {
     double value;
     int index;
 } EigenvalueIndex;
+*/
 
 // Poprawione deklaracje w eigenvectors.h
 #pragma once
@@ -40,9 +42,9 @@ extern void ssaupd_(int *ido, char *bmat, int *n, char *which,
                    float *workd, float *workl, int *lworkl, int *info);
 
 extern void sseupd_(int *rvec, char *All, int *select, float *D,
-                   float *V_out, int *ldv_out, float *sigma, char *bmat,  // Zmienione nazwy
+                   float *V_out, int *ldv_out, float *sigma, char *bmat,
                    int *n, char *which, int *nev, float *tol,
-                   float *resid, int *ncv, float *V_in, int *ldv_in,      // Zmienione nazwy
+                   float *resid, int *ncv, float *V_in, int *ldv_in,
                    int *iparam, int *ipntr, float *workd, float *workl,
                    int *lworkl, int *info);
 
@@ -51,6 +53,9 @@ void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n);
 
 // Obliczanie wektorów własnych
 void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenvectors, float** eigenvalues);
+
+// Wypisanie par własnych
+void print_eigenpairs(float *eigenvalues, float *eigenvectors, int p, int n);
 
 /*
 // Metoda Lanczosa
@@ -67,7 +72,6 @@ void qr_algorithm(LanczosEigenV* le);
 
 // Wypisywanie wyniku algorytmu QR
 void print_qr(const LanczosEigenV* l);
-*/
 
 // Funkcja porównująca
 int compare_eigenvalues(const void* a, const void* b);
@@ -77,5 +81,6 @@ EigenvalueIndex* sort_eigenvalues(LanczosEigenV* l, int p);
 
 // Zwalnianie pamięci dla struktury LanczosEigenV
 void free_lev(LanczosEigenV* l);
+*/
 
 #endif // EIGENVECTORS_H

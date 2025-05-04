@@ -9,6 +9,7 @@
 #include "output.h"
 #include "utils.h"
 
+/*
 // Algorytm klasteryzacji k-means
 int* clusterization(LanczosEigenV* l, EigenvalueIndex* eigvals, int n, int k)
 {
@@ -202,3 +203,4 @@ int check_cluster_balance(int* clusters, int n, int k, int margin)
         return 0;
     }
 }
+*/
