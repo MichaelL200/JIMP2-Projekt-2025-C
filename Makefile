@@ -1,7 +1,7 @@
 # Kompilator i jego flagi
 CC = cc
-CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude
-LDFLAGS = -lm -fopenmp
+CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude -I/usr/local/include/arpack
+LDFLAGS = -L/usr/local/lib -larpack -lopenblas -lgfortran -lm -fopenmp
 
 # Debugger i jego flagi
 VALGRIND = time valgrind --suppressions=libgomp.supp --leak-check=full --show-leak-kinds=all --track-origins=yes

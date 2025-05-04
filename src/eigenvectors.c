@@ -27,6 +27,89 @@ void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n)
     }
 }
 
+// Obliczanie wektorów własnych
+void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenvectors, float** eigenvalues)
+{
+    int ido = 0;
+    int info = 0;
+    char bmat = 'I';
+    char which[] = "SM";
+    int nev = p;
+    float tol = 1e-6;
+    float* resid = malloc(n * sizeof(float));
+    int ncv = (2*nev < n) ? 2*nev : n;
+    if(ncv > n) ncv = n;
+    
+    float* V = malloc(n * ncv * sizeof(float));
+    float* workd = malloc(3*n * sizeof(float));
+    float* workl = malloc(ncv*(ncv+8) * sizeof(float));
+    int lworkl = ncv*(ncv+8);
+    int iparam[11] = {0};
+    int ipntr[14] = {0};
+
+    iparam[0] = 1;
+    iparam[2] = 1000;
+    iparam[6] = 1;
+
+    while(1)
+    {
+        ssaupd_(&ido, &bmat, &n, which, &nev, &tol, resid,
+               &ncv, V, &n, iparam, ipntr, workd, workl,
+               &lworkl, &info);
+
+        if(ido == 99) break;
+        
+        if(ido == -1 || ido == 1)
+        {
+            csr_matvec(graph, &workd[ipntr[0]-1], &workd[ipntr[1]-1], n);
+        }
+        else
+        {
+            fprintf(stderr, "Nieobsługiwany status ARPACK: %d\n", ido);
+            exit(1);
+        }
+    }
+
+    if(info != 0)
+    {
+        fprintf(stderr, "ARPACK error: %d\n", info);
+        exit(1);
+    }
+
+    int* select = malloc(ncv * sizeof(int));
+    if(!select) { perror("malloc select"); exit(1); }
+    float sigma = 0.0f;
+
+    int rvec = 1;
+    float* D = malloc(nev * sizeof(float));
+    sseupd_(&rvec, "A", select, D, V, &n, &sigma, &bmat, &n, which,
+           &nev, &tol, resid, &ncv, V, &n, iparam, ipntr,
+           workd, workl, &lworkl, &info);
+
+    *eigenvectors = malloc(n * nev * sizeof(float));
+    *eigenvalues = malloc(nev * sizeof(float));
+    
+    #pragma omp parallel for
+    for(int i=0; i<nev; i++)
+    {
+        (*eigenvalues)[i] = D[i];
+        for(int j=0; j<n; j++)
+        {
+            (*eigenvectors)[i*n + j] = V[j*nev + i];
+        }
+    }
+
+    free(select);
+    free(V);
+    free(workd);
+    free(workl);
+    // free(iparam);   // USUNIĘTE
+    // free(ipntr);    // USUNIĘTE
+    free(D);
+    free(resid);
+}
+
+/*
 // Metoda Lanczosa
 void lanczos(const CSRMatrix_i* A, LanczosEigenV* l, int n, int m)
 {
@@ -304,6 +387,7 @@ void print_qr(const LanczosEigenV* l)
         printf("\n\tGraf jest zbyt duży, aby wyświetlić wynik algorytmu QR.\n");
     }
 }
+*/
 
 // Funkcja porównująca
 int compare_eigenvalues(const void* a, const void* b)

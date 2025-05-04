@@ -63,6 +63,32 @@ int main(int argc, char *argv[])
     // Wypisanie macierzy Laplace'a
     print_laplacian_matrix(L, input.v_count);
 
+    float* eigenvectors;
+    float* eigenvalues;
+    compute_eigenvectors(L, input.v_count, config.parts, &eigenvectors, &eigenvalues);
+
+    for(int i = 0; i < config.parts; i++)
+    {
+        printf("Part %d: eigenvalue = %.6f\n", i, eigenvalues[i]);
+        printf("  eigenvector[%d] = [", i);
+        for(int j = 0; j < input.v_count; j++)
+        {
+            if(j + 1 < input.v_count)
+            {
+                printf("%.6f, ", eigenvectors[i * input.v_count + j]);
+            }
+            else
+            {
+                printf("%.6f", eigenvectors[i * input.v_count + j]);
+            }
+        }
+        printf("]\n\n");
+    }
+
+    free(eigenvalues);
+    free(eigenvectors);
+
+    /*
     // Inicjalizacja seeda randomizacji
     srand(time(NULL));
 
@@ -98,6 +124,7 @@ int main(int argc, char *argv[])
             continue;
         }
     }
+    */
     
     free_csr_matrix(L);
     free_input(&input);

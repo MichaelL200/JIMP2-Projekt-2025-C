@@ -88,3 +88,17 @@
    fun:lanczos
    fun:main
 }
+{
+  libgomp7
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  obj:*/libgomp.so*
+}
+{
+  libgomp8
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  obj:*/libgomp.so*
+}

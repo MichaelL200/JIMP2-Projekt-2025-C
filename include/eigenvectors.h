@@ -32,9 +32,27 @@ typedef struct
     int index;
 } EigenvalueIndex;
 
+// Poprawione deklaracje w eigenvectors.h
+#pragma once
+extern void ssaupd_(int *ido, char *bmat, int *n, char *which,
+                   int *nev, float *tol, float *resid, int *ncv,
+                   float *V, int *ldv, int *iparam, int *ipntr,
+                   float *workd, float *workl, int *lworkl, int *info);
+
+extern void sseupd_(int *rvec, char *All, int *select, float *D,
+                   float *V_out, int *ldv_out, float *sigma, char *bmat,  // Zmienione nazwy
+                   int *n, char *which, int *nev, float *tol,
+                   float *resid, int *ncv, float *V_in, int *ldv_in,      // Zmienione nazwy
+                   int *iparam, int *ipntr, float *workd, float *workl,
+                   int *lworkl, int *info);
+
 // Mnożenie macierzy CSR przez wektor
 void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n);
 
+// Obliczanie wektorów własnych
+void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenvectors, float** eigenvalues);
+
+/*
 // Metoda Lanczosa
 void lanczos(const CSRMatrix_i* A, LanczosEigenV* le, int n, int m);
 
@@ -49,6 +67,7 @@ void qr_algorithm(LanczosEigenV* le);
 
 // Wypisywanie wyniku algorytmu QR
 void print_qr(const LanczosEigenV* l);
+*/
 
 // Funkcja porównująca
 int compare_eigenvalues(const void* a, const void* b);
