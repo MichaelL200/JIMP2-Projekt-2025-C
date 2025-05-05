@@ -55,22 +55,30 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Resu
     }
 
     // Normalizacja wektorów własnych
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         float norm = 0.0;
-        for (int d = 0; d < dim; d++) {
+        for (int d = 0; d < dim; d++)
+        {
             norm += points[i][d] * points[i][d];
         }
         norm = sqrtf(norm);
-        if (norm > 0) {
-            for (int d = 0; d < dim; d++) {
+        if (norm > 0)
+        {
+            for (int d = 0; d < dim; d++)
+            {
                 points[i][d] /= norm;
             }
         }
     }
 
-    if (k == 2) {
-        split_clusters_by_fiedler_vector(eigenvectors + n, n, clusters); // Użycie drugiego wektora własnego
-    } else {
+    if (k == 2)
+    {
+        // Użycie drugiego wektora własnego
+        split_clusters_by_fiedler_vector(eigenvectors + n, n, clusters);
+    }
+    else
+    {
         // Inicjalizacja centroidów jako pierwszych k punktów
         float** centroids = malloc(k * sizeof(float*));
         check_alloc(centroids);
@@ -164,21 +172,8 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Resu
             clusters[i] = assignments[i];
         }
 
-        printf("\n");
-        // Debugowanie równowagi klastrów
-        while (!check_cluster_balance(clusters, n, k, margin, result))
+        for (int i = 0; i < k; i++)
         {
-            fprintf(stderr, "\tUWAGA: MARGINES %d%% JEST ZBYT MAŁY DLA OPTYMALNEGO PODZIAŁU.\n", margin);
-            margin *= 1.5f; // Zwiększenie marginesu przez mnożnik 1.5
-            fprintf(stderr, "\tZWIĘKSZONO MARGINES DO: %d%% I PONOWIONO PRÓBĘ.\n", margin);
-        }
-
-        // Jeśli równowaga klastrów została osiągnięta, ustaw wynik na sukces
-        if (result != NULL) {
-            result->res = 'S';
-        }
-
-        for (int i = 0; i < k; i++) {
             free(centroids[i]);
         }
         free(centroids);
@@ -186,10 +181,35 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Resu
         free(assignments);
     }
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         free(points[i]);
     }
     free(points);
+
+    printf("\n");
+    if (!check_cluster_balance(clusters, n, k, margin, result))
+    {
+        printf("\033[0;33m\tUWAGA: MARGINES %d%% JEST ZBYT MAŁY DLA OPTYMALNEGO PODZIAŁU SPEKTRALNEGO.\033[0m\n", margin);
+        char response;
+        printf("\033[0;33m\tCzy chcesz zwiększyć margines na %d%%, aby zakończyć klasteryzację powodzeniem? (t/n): \033[0m", result->margin_kept);
+        scanf(" %c", &response);
+        if (response == 't' || response == 'T' || response == 'y' || response == 'Y')
+        {
+            result->res = 'S';
+            printf("\033[0;33m\tPodział spektralny zakończony sukcesem po zwiększeniu marginesu.\033[0m\n");
+        }
+        else
+        {
+            result->res = 'F';
+            printf("\033[0;31m\tPodział spektralny zakończony niepowodzeniem.\033[0m\n");
+        }
+    }
+    else
+    {
+        result->res = 'S';
+        printf("\033[0;32m\tPodział spektralny zakończony sukcesem.\033[0m\n");
+    }
 
     return clusters;
 }
@@ -222,7 +242,7 @@ void print_clusters(int* clusters, int n, int k)
 }
 
 // Sprawdzenie równowagi klastrów
-int check_cluster_balance(int* clusters, int n, int k, float margin, Result* result)
+int check_cluster_balance(int* clusters, int n, int k, int margin, Result* result)
 {
     if(result != NULL) result->parts = k;
     int* counts = malloc(k * sizeof(int));

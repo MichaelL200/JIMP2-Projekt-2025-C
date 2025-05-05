@@ -91,13 +91,18 @@ int modify_graph(Input *i, int* clusters)
 void print_result(Result *result)
 {
     printf("\n\tRezultat:\n");
-    printf("\t\tWynik: %c\n", result->res);
+    if (result->res == 'S')
+    {
+        printf("\033[0;32m\t\tWynik: %c\033[0m\n", result->res); // Zielony
+    }
+    else
+    {
+        printf("\033[0;31m\t\tWynik: %c\033[0m", result->res); // Czerwony
+        printf("\033[0;33m\t(Uwaga: Margines został przekroczony)\033[0m\n");
+    }
     printf("\t\tPodział: %d\n", result->parts);
     printf("\t\tLiczba usuniętych krawędzi: %d\n", result->cut_count);
-    printf("\t\tZachowany margines: %d%%\n", result->margin_kept); // Zawsze wyświetl margines
-    if (result->res == 'F') {
-        printf("\t\t(Uwaga: Margines został przekroczony)\n"); // Dodaj ostrzeżenie, jeśli margines przekroczony
-    }
+    printf("\t\tZachowany margines: %d%%\n", result->margin_kept);
 }
 
 // Wypisanie wyników do pliku

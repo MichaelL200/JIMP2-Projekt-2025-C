@@ -13,14 +13,8 @@
 #include "output.h"
 #include "utils.h"
 
-// Próg dla wielowątkowości
-#define MULTITHREADING_THRESHOLD 1
-
-// Maksymalna liczba prób podziału spektralnego
-#define MAX_ATTEMPTS 10
-
 // Maksymalny rozmiar grafu do wypisywania danych
-int max_print_size = 110;
+int max_print_size = 50;
 
 int main(int argc, char *argv[])
 {
@@ -42,7 +36,7 @@ int main(int argc, char *argv[])
     print_input(&input);
 
     // Ustawienie liczby procesorów
-    if(input.v_count > 1000)
+    if(input.v_count > 60000)
     {
         long num_threads = sysconf(_SC_NPROCESSORS_ONLN);
         if (num_threads < 1)
@@ -76,13 +70,6 @@ int main(int argc, char *argv[])
     print_clusters(clusters, input.v_count, config.parts);
     free(eigenvectors);
     free(eigenvalues);
-
-    // Sprawdzenie równowagi klastrów
-    if (result->res == 'S') {
-        printf("\n\tPodział spektralny zakończony sukcesem!\n");
-    } else {
-        printf("\n\tPodział spektralny nie powiódł się! Margines został przekroczony.\n");
-    }
 
     // Modyfikacja grafu w oparciu o podział
     result->cut_count = modify_graph(&input, clusters);

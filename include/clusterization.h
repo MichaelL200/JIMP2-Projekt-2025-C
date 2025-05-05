@@ -11,6 +11,6 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Resu
 void print_clusters(int* clusters, int n, int k);
 
 // Sprawdzenie równowagi klastrów
-int check_cluster_balance(int* clusters, int n, int k, float margin, Result* result);
+int check_cluster_balance(int* clusters, int n, int k, int margin, Result* result);
 
 #endif // CLUSTERIZATION_H
