@@ -14,22 +14,15 @@
 // Mnożenie macierzy CSR przez wektor
 void csr_matvec(const CSRMatrix_i* A, const float* x, float* y, int n)
 {
-    #pragma omp parallel
+    for (int i = 0; i < n; ++i)
     {
-        #pragma omp for schedule(dynamic, 50)
-        for (int i = 0; i < n; ++i)
+        y[i] = 0.0;
+        int row_start = A->row_ptr[i];
+        int row_end = A->row_ptr[i + 1];
+        for (int j = row_start; j < row_end; ++j)
         {
-            y[i] = 0.0;
-            int row_start = A->row_ptr[i];
-            int row_end = A->row_ptr[i + 1];
-            for (int j = row_start; j < row_end; ++j)
-            {
-                y[i] += A->values[j] * x[A->col_index[j]];
-            }
+            y[i] += A->values[j] * x[A->col_index[j]];
         }
-
-        // Dodanie bariery w celu poprawnego zakończenia wątków OpenMP
-        #pragma omp barrier
     }
 }
 
@@ -212,11 +205,6 @@ void compute_eigenvectors(const CSRMatrix_i* graph, int n, int p, float** eigenv
     free(workl);
     free(D);
     free(resid);
-
-    #pragma omp parallel
-    {
-        #pragma omp barrier
-    }
 }
 
 // Wypisanie par własnych

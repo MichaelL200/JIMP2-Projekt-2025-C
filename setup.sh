@@ -70,14 +70,6 @@ else
     echo "GCC is already installed."
 fi
 
-# Check and install OpenMP support
-if ! ldconfig -p | grep -q libgomp; then
-    echo "Installing OpenMP support..."
-    install_package libgomp1
-else
-    echo "OpenMP support is already installed."
-fi
-
 # Check and install LAPACK and BLAS
 if ! ldconfig -p | grep -q liblapack; then
     echo "Installing LAPACK and BLAS..."

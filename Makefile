@@ -1,7 +1,7 @@
 # Kompilator i jego flagi
 CC = cc
 CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude -I/usr/local/include/arpack
-LDFLAGS = -L/usr/local/lib -larpack -lopenblas -lgfortran -lm -fopenmp
+LDFLAGS = -L/usr/local/lib -larpack -lopenblas -lgfortran -lm
 
 # Debugger i jego flagi
 VALGRIND = time valgrind --suppressions=libgomp.supp --leak-check=full --show-leak-kinds=all --track-origins=yes
@@ -58,4 +58,4 @@ g0: $(EXEC)
 6: $(EXEC)
 	$(VALGRIND) ./$(EXEC) input/graf6.csrrg
 
-.PHONY: all clean clear rebuild 0 1 2 3 4 5 6
+.PHONY: all clean clear rebuild g0 0 1 2 3 4 5 6

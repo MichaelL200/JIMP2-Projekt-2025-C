@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#include <omp.h>
 
 #include "clusterization.h"
 #include "eigenvectors.h"
@@ -109,7 +108,6 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Resu
             changed = 0;
 
             // Przypisanie punktów do najbliższego centroidu
-            #pragma omp parallel for schedule(static)
             for (int i = 0; i < n; i++)
             {
                 float min_dist = DBL_MAX;
@@ -144,7 +142,6 @@ int* clusterization(float* eigenvectors, int n, int k, int dim, int margin, Resu
                 }
                 counts[j] = 0;
             }
-            #pragma omp parallel for reduction(+:counts[:k])
             for (int i = 0; i < n; i++)
             {
                 int c = assignments[i];

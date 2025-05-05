@@ -35,23 +35,6 @@ int main(int argc, char *argv[])
     // Wypisanie informacji wczytanych z pliku wejściowego
     print_input(&input);
 
-    // Ustawienie liczby procesorów
-    if(input.v_count > 60000)
-    {
-        long num_threads = sysconf(_SC_NPROCESSORS_ONLN);
-        if (num_threads < 1)
-        {
-            error("sysconf");
-        }
-        printf("\n\tLiczba dostępnych rdzeni: %ld\n", num_threads);
-        // Ustawienie liczby wątków w OpenMP
-        omp_set_num_threads(num_threads);
-    }
-    else
-    {
-        omp_set_num_threads(1);
-    }
-
     // Obliczanie macierzy Laplace'a grafu L
     CSRMatrix_i *L = get_laplacian_matrix(&input);
     // Wypisanie macierzy Laplace'a
