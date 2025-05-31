@@ -1,10 +1,10 @@
 # Kompilator i jego flagi
 CC = cc
-CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude -I/usr/local/include/arpack
+CFLAGS = -Wall -Wextra -Wuninitialized -Iinclude -I/usr/local/include/arpack -I/usr/include/openblas
 LDFLAGS = -L/usr/local/lib -larpack -lopenblas -lgfortran -lm
 
 # Debugger i jego flagi
-VALGRIND = time valgrind --suppressions=libgomp.supp --leak-check=full --show-leak-kinds=all --track-origins=yes
+VALGRIND = time valgrind --suppressions=libgomp.supp --gen-suppressions=all --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 # Katalogi
 SRC_DIR = src

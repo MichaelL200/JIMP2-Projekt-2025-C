@@ -1,5 +1,5 @@
 {
-   libgomp0
+   omp_supp0
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
@@ -15,7 +15,7 @@
    obj:*
 }
 {
-   libgomp1
+   omp_supp1
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:realloc
@@ -26,7 +26,7 @@
    fun:main
 }
 {
-   libgomp2
+   omp_supp2
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:calloc
@@ -42,7 +42,7 @@
    obj:*
 }
 {
-   libgomp3
+   omp_supp3
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
@@ -53,7 +53,7 @@
    fun:main
 }
 {
-   libgomp4
+   omp_supp4
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
@@ -63,7 +63,7 @@
    fun:main
 }
 {
-   libgomp5
+   omp_supp5
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -78,7 +78,7 @@
    fun:main
 }
 {
-   libgomp6
+   omp_supp6
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:memalign
@@ -89,21 +89,21 @@
    fun:main
 }
 {
-  libgomp7
+  omp_supp7
   Memcheck:Leak
   match-leak-kinds: reachable
   fun:malloc
   obj:*/libgomp.so*
 }
 {
-  libgomp8
+  omp_supp8
   Memcheck:Leak
   match-leak-kinds: reachable
   fun:malloc
   obj:*/libgomp.so*
 }
 {
-   libgomp9
+   omp_supp9
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:realloc
@@ -114,7 +114,7 @@
    fun:main
 }
 {
-   libgomp10
+   omp_supp10
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -129,7 +129,7 @@
    fun:main
 }
 {
-   libgomp11
+   omp_supp11
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:memalign
@@ -140,7 +140,7 @@
    fun:main
 }
 {
-   libgomp12
+   omp_supp12
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:realloc
@@ -151,7 +151,7 @@
    fun:main
 }
 {
-   libgomp13
+   omp_supp13
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -166,7 +166,7 @@
    fun:main
 }
 {
-   libgomp14
+   omp_supp14
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:memalign
@@ -175,4 +175,197 @@
    fun:csr_matvec
    fun:compute_eigenvectors
    fun:main
+}
+{
+   omp_supp34
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:ucs_strdup
+   fun:ucs_config_sscanf_string
+   fun:ucs_config_sscanf_array
+   fun:ucs_config_parser_parse_field
+   fun:ucs_config_parser_set_default_values
+   fun:ucs_config_parser_fill_opts
+   fun:ucs_global_opts_init
+   fun:ucs_init
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+}
+{
+   omp_supp35
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:ucs_malloc
+   fun:UnknownInlinedFun
+   fun:UnknownInlinedFun
+   fun:ucs_load_modules
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:/usr/lib/ld-linux-x86-64.so.2
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   omp_supp36
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:ucs_strdup
+   fun:ucs_config_sscanf_string
+   fun:ucs_config_parser_parse_field
+   fun:ucs_config_parser_set_default_values
+   fun:ucs_config_parser_fill_opts
+   fun:ucs_global_opts_init
+   fun:ucs_init
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:/usr/lib/ld-linux-x86-64.so.2
+}
+{
+   omp_supp37
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:gomp_malloc_cleared
+   fun:add_initial_icv_to_list
+   fun:initialize_env
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:/usr/lib/ld-linux-x86-64.so.2
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   omp_supp38
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:ucs_calloc
+   fun:ucs_config_sscanf_array
+   fun:ucs_config_parser_parse_field
+   fun:ucs_config_parser_set_default_values
+   fun:ucs_config_parser_fill_opts
+   fun:ucs_global_opts_init
+   fun:ucs_init
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:/usr/lib/ld-linux-x86-64.so.2
+   obj:*
+}
+{
+   omp_supp39
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:gomp_realloc
+   fun:gomp_team_start
+   fun:GOMP_parallel
+   fun:exec_blas
+   fun:blas_level1_thread
+   fun:saxpy_
+   fun:ssapps_
+   fun:ssaup2_
+   fun:ssaupd_
+   fun:compute_eigenvectors
+   fun:main
+}
+{
+   omp_supp40
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:memalign
+   fun:gomp_aligned_alloc
+   fun:gomp_new_team
+   fun:GOMP_parallel
+   fun:exec_blas
+   fun:blas_level1_thread
+   fun:saxpy_
+   fun:ssapps_
+   fun:ssaup2_
+   fun:ssaupd_
+   fun:compute_eigenvectors
+   fun:main
+}
+{
+   omp_supp41
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.34
+   fun:gomp_team_start
+   fun:GOMP_parallel
+   fun:exec_blas
+   fun:blas_level1_thread
+   fun:saxpy_
+   fun:ssapps_
+   fun:ssaup2_
+   fun:ssaupd_
+}
+{
+   omp_supp42
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:gomp_realloc
+   fun:gomp_team_start
+   fun:GOMP_parallel
+   fun:exec_blas
+   fun:sger_thread
+   fun:sger_
+   fun:slarf_
+   fun:sorm2r_
+   fun:sseupd_
+   fun:compute_eigenvectors
+   fun:main
+}
+{
+   omp_supp43
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:memalign
+   fun:gomp_aligned_alloc
+   fun:gomp_new_team
+   fun:GOMP_parallel
+   fun:exec_blas
+   fun:sger_thread
+   fun:sger_
+   fun:slarf_
+   fun:sorm2r_
+   fun:sseupd_
+   fun:compute_eigenvectors
+   fun:main
+}
+{
+   omp_supp44
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.34
+   fun:gomp_team_start
+   fun:GOMP_parallel
+   fun:exec_blas
+   fun:sger_thread
+   fun:sger_
+   fun:slarf_
+   fun:sorm2r_
+   fun:sseupd_
 }
